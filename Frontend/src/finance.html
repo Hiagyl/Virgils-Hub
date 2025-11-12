@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Virgils Hub — Finance Dashboard</title>
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-role="admin">
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+<div><h1>UP Vis</h1><div class="sub">Scholar Support and Donation Management System</div></div>
+    </div>
+    <nav class="nav">
+      <h3>Finance</h3>
+      <a href="#/dashboard" data-route class="active"><span class="icon">D</span> Dashboard</a>
+      <a href="#/record" data-route><span class="icon">+</span> Record</a>
+      <a href="index.html"><span class="icon">↩</span> Logout</a>
+    </nav>
+  </aside>
+
+<main class="main">
+  <header class="topbar">
+    <div class="welcome">
+      <h2>👋 Welcome back, Admin!</h2>
+    </div>
+
+  </header>
+
+
+    <section class="content">
+      <!-- Dashboard -->
+      <div class="view route active" data-path="/dashboard">
+        <div class="section-title">
+          <h3>Finance Dashboard</h3>
+          <div class="row">
+            <a class="btn primary" href="#/record" data-route>+ Record</a>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="card gradient"><h4>Total Donations</h4><div class="value" id="donations">₱ 0</div></div>
+          <div class="card"><h4>Total Expenses</h4><div class="value" id="expenses">₱ 0</div></div>
+          <div class="card"><h4>Current Balance</h4><div class="value" id="balance">₱ 0</div></div>
+        </div>
+
+        <div class="card stack">
+          <h3>Recent Transactions</h3>
+          <table class="table" id="txnTable">
+            <thead><tr><th>Type</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Record -->
+      <div class="view route" data-path="/record">
+        <div class="section-title"><h3>Record Transaction</h3><a class="btn ghost" href="#/dashboard" data-route>← Back</a></div>
+        <form id="txnForm" class="grid-3">
+          <div class="field"><label>Type</label>
+            <select id="type" required>
+              <option value="">Select</option><option value="Donation">Donation</option>
+              <option value="Purchase">Purchase</option><option value="Expense">Expense</option>
+            </select>
+          </div>
+          <div class="field"><label>Description</label><input id="desc" required placeholder="e.g. Alumni donation"></div>
+          <div class="field"><label>Amount</label><input id="amt" type="number" min="1" required placeholder="₱"></div>
+          <!-- Centered Action Buttons -->
+<div class="actions">
+  <button class="btn good large">Save</button>
+</div>
+
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="assets/app.js"></script>
+<script>
+let donations=0,expenses=0;
+const dEl=document.getElementById('donations');
+const eEl=document.getElementById('expenses');
+const bEl=document.getElementById('balance');
+const table=document.querySelector('#txnTable tbody');
+document.getElementById('txnForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const type=document.getElementById('type').value;
+  const desc=document.getElementById('desc').value;
+  const amt=parseFloat(document.getElementById('amt').value)||0;
+  if(!type||!desc||!amt)return;
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td>${type}</td><td>${desc}</td><td>${amt.toFixed(2)}</td><td>${new Date().toLocaleDateString()}</td>`;
+  table.prepend(tr);
+  if(type==='Donation')donations+=amt; else expenses+=amt;
+  const balance=donations-expenses;
+  dEl.textContent='₱ '+donations.toFixed(2);
+  eEl.textContent='₱ '+expenses.toFixed(2);
+  bEl.textContent='₱ '+balance.toFixed(2);
+  e.target.reset();
+});
+</script>
+</body>
+</html>
