@@ -1,15 +1,10 @@
 const mongoose = require('mongoose');
 
 const DistributionSchema = new mongoose.Schema({
-    distributionID: {
-        type: String,
-        required: true,
-        unique: true
-    },
     scholarID: {
         type: String,
         required: true,
-        ref: 'Scholar'
+        ref: 'Scholars'
     },
     type: {
         type: String,

@@ -1,11 +1,6 @@
 const mongoose = require('mongoose');
 
 const ReportSchema = new mongoose.Schema({
-    reportID: {
-        type: String,
-        required: true,
-        unique: true
-    },
     reportType: {
         type: String, // e.g. "Monthly", "Quarterly", "Annual"
         required: true

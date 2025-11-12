@@ -1,0 +1,42 @@
+### GET all scholars
+GET http://localhost:3000/api/scholars
+Accept: application/json
+
+###
+
+### GET a scholar by ID
+GET http://localhost:3000/api/scholars/<_id_here>
+Accept: application/json
+
+###
+
+### CREATE a new scholar
+POST http://localhost:3000/api/scholars
+Content-Type: application/json
+
+{
+  "fullname": "Jane Doe",
+  "picture": "https://example.com/janedoe.jpg",
+  "status": "active",
+  "degreeProgram": "BS Computer Science",
+  "yearLevel": 3,
+  "contactNo": "09998887766"
+}
+
+###
+
+### UPDATE a scholar by ID
+PUT http://localhost:3000/api/scholars/<_id_here>
+Content-Type: application/json
+
+{
+  "fullname": "Jane Smith",
+  "status": "graduate",
+  "yearLevel": 4
+}
+
+###
+
+### DELETE a scholar by ID
+DELETE http://localhost:3000/api/scholars/<_id_here>
+Accept: application/json

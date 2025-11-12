@@ -1,0 +1,37 @@
+POST http://localhost:3000/api/members
+Content-Type: application/json
+
+{
+  "memberID": "M002",
+  "fullname": "Jane Doe",
+  "contactNo": "09987654321",
+  "joinDate": "2025-11-12",
+  "status": "active"
+}
+
+### GET all members
+GET http://localhost:3000/api/members
+Accept: application/json
+
+###
+
+### GET a member by ID
+GET http://localhost:3000/api/members/<_id_here>
+Accept: application/json
+
+###
+
+### UPDATE a member by ID
+PUT http://localhost:3000/api/members/69141ab34f2f01f99bc7af12
+Content-Type: application/json
+
+{
+  "fullname": "Jane Smith",
+  "contactNo": "09998887766",
+  "status": "inactive"
+}
+
+
+### DELETE a member by ID
+DELETE http://localhost:3000/api/members/69141ab34f2f01f99bc7af12
+Accept: application/json
