@@ -37,4 +37,6 @@ const ScholarSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Scholar', ScholarSchema);
+const Scholars = mongoose.model('Scholar', ScholarSchema);
+
+module.exports = Scholars;
