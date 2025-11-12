@@ -19,10 +19,10 @@ const expenseSchema = new mongoose.Schema({
     responsibleID: {
         type: String,
         required: true,
-        ref: 'Member' // assumes this links to Members collection
+        ref: 'Members' 
     },
     receipt: {
-        type: String, // could store a file path, URL, or base64 string
+        type: String, // store a file path
         default: null
     },
     remarks: {
