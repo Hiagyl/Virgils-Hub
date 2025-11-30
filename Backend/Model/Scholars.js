@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const ScholarSchema = new mongoose.Schema({
+    scholarID: {
+        type: String,
+        unique: true,  // ensures no duplicates
+    },
     fullname: {
         type: String,
         required: true

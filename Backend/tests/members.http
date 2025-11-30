@@ -2,8 +2,8 @@ POST http://localhost:3000/api/members
 Content-Type: application/json
 
 {
-  "memberID": "M002",
-  "fullname": "Jane Doe",
+  "memberID": "M004",
+  "fullname": "Joshua Ticotssss",
   "contactNo": "09987654321",
   "joinDate": "2025-11-12",
   "status": "active"

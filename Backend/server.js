@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
 
-// Import your models
 const Distributions = require("./Model/Distributions");
 const Donations = require("./Model/Donations");
 const Donors = require("./Model/Donors");
@@ -26,12 +25,12 @@ mongoose
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-    .then(() => console.log("✅ Connected to MongoDB"))
-    .catch((err) => console.error("❌ MongoDB connection error:", err));
+    .then(() => console.log("Connected to MongoDB"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
 // app.use("/api/distributions", require("./Routes/distributionRoutes"));
 // app.use("/api/donations", require("./Routes/donationRoutes"));
-// app.use("/api/donors", require("./Routes/donorRoutes"));
+app.use("/api/donors", require("./Routes/donorRoutes"));
 // app.use("/api/expenses", require("./Routes/expenseRoutes"));
 app.use("/api/members", require("./Routes/memberRoutes"));
 // app.use("/api/reports", require("./Routes/reportRoutes"));
@@ -91,4 +90,4 @@ app.get("/", (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

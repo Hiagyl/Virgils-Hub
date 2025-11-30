@@ -15,12 +15,13 @@ POST http://localhost:3000/api/scholars
 Content-Type: application/json
 
 {
-  "fullname": "Jane Doe",
-  "picture": "https://example.com/janedoe.jpg",
+  "scholarID": "N002",
+  "fullname": "Josh Ticot",
+  "picture": "https://example.com/joshh.jpg",
   "status": "active",
   "degreeProgram": "BS Computer Science",
   "yearLevel": 3,
-  "contactNo": "09998887766"
+  "contactNo": "09998887886"
 }
 
 ###

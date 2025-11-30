@@ -1,0 +1,48 @@
+### GET all donors
+GET http://localhost:3000/api/donors
+Accept: application/json
+
+###
+
+### GET a donor by ID
+GET http://localhost:3000/api/donors/<_id_here>
+Accept: application/json
+
+###
+
+### CREATE a new donor
+POST http://localhost:3000/api/donors
+Content-Type: application/json
+
+{
+  "fullName": "John Doe",
+  "contactNo": "09123456789"
+}
+
+###
+
+### UPDATE a donor by ID (full update)
+PUT http://localhost:3000/api/donors/<_id_here>
+Content-Type: application/json
+
+{
+  "fullName": "John Smith",
+  "contactNo": "09998887766"
+}
+
+###
+
+### PARTIAL UPDATE a donor by ID (PATCH)
+PUT http://localhost:3000/api/donors/6914233715516c5880e67362
+Content-Type: application/json
+
+{
+  "fullName": "Joshua Ticot",
+  "contactNo": "09990001122"
+}
+
+###
+
+### DELETE a donor by ID
+DELETE http://localhost:3000/api/donors/<_id_here>
+Accept: application/json
