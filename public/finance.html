@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UP Vis — Finance Dashboard</title>
+<link rel="stylesheet" href="styles.css">
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+.sort-controls select {
+  padding: 6px 10px;
+  background: #0f152f;
+  border: 1px solid #243059;
+  border-radius: 6px;
+  color: white;
+}
+.sort-controls label { margin-right: 6px; }
+
+.action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+.edit-btn { background: #3b82f6; color: white; }
+.delete-btn { background: #ef4444; color: white; }
+</style>
+</head>
+
+<body data-role="admin">
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>UP Vis</h1>
+        <div class="sub">Scholar Support and Donation Management System</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <h3>Finance</h3>
+      <a href="finance.html"><span class="icon">D</span> Dashboard</a>
+      <a href="transactions.html"><span class="icon">T</span> Transactions</a>
+      <a href="distributions.html"><span class="icon">D</span> Distributions</a>
+      <a href="scholars.html"><span class="icon">S</span> Scholars</a>
+      <a href="members.html"><span class="icon">M</span> Members</a>
+    </nav>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="search-bar">
+        <span style="color:#6b7893">🔍</span>
+        <input type="text" id="searchFinance" placeholder="Search…">
+      </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <section class="content">
+
+      <div class="section-title">
+        <h3>Finance Dashboard</h3>
+        <div class="row">
+          <button id="addRecordBtn" class="btn primary">+ Record</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpis">
+        <div class="card gradient">
+          <h4>Total Donations</h4>
+          <div class="value" id="donations">₱ 0</div>
+        </div>
+
+        <div class="card">
+          <h4>Total Expenses</h4>
+          <div class="value" id="expenses">₱ 0</div>
+        </div>
+
+        <div class="card">
+          <h4>Current Balance</h4>
+          <div class="value" id="balance">₱ 0</div>
+        </div>
+      </div>
+
+      <!-- RECENT TRANSACTIONS -->
+      <div class="card stack">
+        <h3>Recent Transactions</h3>
+
+        <div class="sort-controls" style="display:flex; gap:12px; margin-bottom:12px; align-items:center;">
+          <label><strong>Sort by:</strong></label>
+
+          <select id="sortField">
+            <option value="date">Date</option>
+            <option value="type">Type</option>
+            <option value="description">Description</option>
+            <option value="amount">Amount</option>
+          </select>
+
+          <select id="sortDirection">
+            <option value="desc">Descending</option>
+            <option value="asc">Ascending</option>
+          </select>
+        </div>
+
+        <!-- TABLE WITH ACTIONS -->
+        <table class="table" id="txnTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+
+<!-- ADD / EDIT MODAL -->
+<div id="addRecordModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Record</h3>
+      <span class="close">&times;</span>
+    </div>
+
+    <div class="modal-body">
+      <form id="addRecordForm">
+
+        <input type="hidden" id="editID">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type *</label>
+            <select id="recType" required>
+              <option value="">Select Type</option>
+              <option value="donation">Donation</option>
+              <option value="expense">Expense</option>
+              <option value="purchase">Purchase</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Amount *</label>
+            <input type="number" id="recAmount" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description *</label>
+          <input type="text" id="recDesc" required>
+        </div>
+
+        <div class="form-group">
+          <label>Date *</label>
+          <input type="date" id="recDate" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelRecordBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="finance.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const current = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav a").forEach(a => {
+    a.classList.toggle("active", a.getAttribute("href") === current);
+  });
+});
+</script>
+
+</body>
+</html>

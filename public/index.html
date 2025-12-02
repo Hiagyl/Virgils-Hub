@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UP Vis — Login</title>
+
+<link rel="stylesheet" href="assets/styles.css">
+
+<style>
+.auth-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+.auth-card{
+  background:linear-gradient(180deg,#121734,#0f142d);
+  border:1px solid var(--border);
+  border-radius:var(--radius-xl);
+  box-shadow:var(--shadow);
+  padding:40px 32px;
+  width:360px;
+  text-align:center;
+}
+.auth-card h1{
+  margin:0 0 8px;
+  color:var(--brand);
+  font-size:26px;
+  font-weight:700;
+}
+.auth-card p{
+  margin:0 0 16px;
+  color:var(--muted);
+}
+.auth-card .field{
+  background:#0f152f;
+  border:1px solid #243059;
+  margin-bottom:12px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+}
+.auth-card input,
+.auth-card select{
+  background:transparent;
+  border:0;
+  width:100%;
+  padding:10px 12px;
+  color:var(--text);
+  outline:0;
+}
+.hidden{display:none}
+</style>
+
+</head>
+
+<body>
+<div class="auth-wrap">
+
+  <div class="auth-card">
+    <h1>UP Vis</h1>
+    <p>Scholar Support and Donation Management System</p>
+
+    <!-- LOGIN FORM -->
+    <form id="loginForm">
+      <div class="field"><input type="email" placeholder="Email" required></div>
+      <div class="field"><input type="password" placeholder="Password" required></div>
+
+      <div class="field">
+        <select required>
+          <option value="">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="donor">Donor</option>
+          <option value="scholar">Scholar</option>
+        </select>
+      </div>
+
+      <button class="btn primary" type="submit">Login</button>
+
+      <p class="sub" style="margin-top:12px;">
+        Don’t have an account?
+        <a id="showReg" href="#" style="color:var(--brand)">Register</a>
+      </p>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form id="regForm" class="hidden">
+      <div class="field"><input type="text" placeholder="Full Name" required></div>
+      <div class="field"><input type="email" placeholder="Email" required></div>
+      <div class="field"><input type="password" placeholder="Password" required></div>
+
+      <div class="field">
+        <select required>
+          <option value="">Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="donor">Donor</option>
+          <option value="scholar">Scholar</option>
+        </select>
+      </div>
+
+      <button class="btn good" type="submit">Create Account</button>
+
+      <p class="sub" style="margin-top:12px;">
+        Already have an account?
+        <a id="showLogin" href="#" style="color:var(--brand)">Login</a>
+      </p>
+    </form>
+
+  </div>
+</div>
+
+<script>
+// Toggle login/register
+const loginForm = document.getElementById("loginForm");
+const regForm = document.getElementById("regForm");
+
+document.getElementById("showReg").onclick = e => {
+  e.preventDefault();
+  loginForm.classList.add("hidden");
+  regForm.classList.remove("hidden");
+};
+
+document.getElementById("showLogin").onclick = e => {
+  e.preventDefault();
+  regForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+};
+
+// Temporary redirect on login
+loginForm.onsubmit = e => {
+  e.preventDefault();
+  window.location.href = "finance.html";
+};
+</script>
+
+
+<script>
+// Auto-highlight current navigation link
+document.addEventListener("DOMContentLoaded", () => {
+  const current = window.location.pathname.split("/").pop(); // e.g. "finance.html"
+  const links = document.querySelectorAll(".nav a");
+
+  links.forEach(a => {
+    const target = a.getAttribute("href");
+
+    if (current === target || (current === "" && target === "finance.html")) {
+      a.classList.add("active");
+    } else {
+      a.classList.remove("active");
+    }
+  });
+});
+</script>
+
+
+</body>
+</html>

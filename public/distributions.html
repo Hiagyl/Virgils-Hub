@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>UP Vis — Distributions</title>
+<link rel="stylesheet" href="styles.css">
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+.sort-controls select {
+  padding: 6px 10px;
+  background: #0f152f;
+  border: 1px solid #243059;
+  border-radius: 6px;
+  color: white;
+}
+.sort-controls label { margin-right: 6px; }
+
+.action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+.edit-btn { background:#3b82f6; color:white; }
+.delete-btn { background:#ef4444; color:white; }
+</style>
+</head>
+
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <h1>UP Vis</h1>
+        <div class="sub">Scholar Support and Donation Management System</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <h3>Finance</h3>
+      <a href="finance.html"><span class="icon">D</span> Dashboard</a>
+      <a href="transactions.html"><span class="icon">T</span> Transactions</a>
+      <a href="distributions.html"><span class="icon">D</span> Distributions</a>
+      <a href="scholars.html"><span class="icon">S</span> Scholars</a>
+      <a href="members.html"><span class="icon">M</span> Members</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+
+    <header class="topbar">
+      <div class="search-bar">
+        <span style="color:#6b7893">🔍</span>
+        <input type="text" id="searchDist" placeholder="Search distributions…">
+      </div>
+    </header>
+
+    <section class="content">
+
+      <div class="page-header">
+        <h2>Distributions</h2>
+        <button id="addDistributionBtn" class="btn primary">+ Add Distribution</button>
+      </div>
+
+      <div class="sort-controls" style="display:flex; gap:12px; margin-bottom:12px; align-items:center;">
+        <label><strong>Sort by:</strong></label>
+
+        <select id="sortField">
+          <option value="id">ID</option>
+          <option value="scholar">Scholar</option>
+          <option value="type">Type</option>
+          <option value="amount">Amount</option>
+          <option value="location">Location</option>
+        </select>
+
+        <select id="sortDirection">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </div>
+
+      <div class="members-table">
+        <table class="table" id="distributionsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Scholar</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Location</th>
+              <th>Proof</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="distTableBody"></tbody>
+        </table>
+      </div>
+
+    </section>
+  </main>
+</div>
+
+
+<!-- ADD / EDIT DISTRIBUTION MODAL -->
+<div id="addDistributionModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Distribution</h3>
+      <span class="close">&times;</span>
+    </div>
+
+    <div class="modal-body">
+      <form id="addDistributionForm">
+
+        <input type="hidden" id="editID">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Scholar *</label>
+            <input type="text" id="distScholar" required>
+          </div>
+
+          <div class="form-group">
+            <label>Type *</label>
+            <select id="distType" required>
+              <option value="">Select Type</option>
+              <option value="Cash">Cash</option>
+              <option value="Allowance">Allowance</option>
+              <option value="Subsidy">Subsidy</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount *</label>
+            <input type="number" id="distAmount" required>
+          </div>
+
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="distLocation">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Proof (URL)</label>
+          <input type="text" id="distProof">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelDistributionBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script src="distributions.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const current = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav a").forEach(a =>
+    a.classList.toggle("active", a.getAttribute("href") === current)
+  );
+});
+</script>
+
+</body>
+</html>
