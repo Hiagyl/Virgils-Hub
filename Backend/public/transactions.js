@@ -79,7 +79,6 @@ addTransactionForm.addEventListener("submit", async e => {
       donorID: donorIDInput?.value || generateTransactionID("Trx")
     };
   } else {
-    // EXPENSE DATA - match backend requirements
     data = {
       description: transDesc.value,
       amount: Number(transAmount.value),
@@ -107,7 +106,6 @@ addTransactionForm.addEventListener("submit", async e => {
     return;
   }
 
-  // Additional validation for expenses
   if (transactionType === "Expense" && !data.responsibleID) {
     alert("Please enter responsible person ID");
     return;
@@ -203,8 +201,7 @@ async function fetchTransactions() {
 async function createTransaction(data, transactionType) {
   // Determine API endpoint
   const apiUrl = transactionType === "donation" ? API_URLS.Donations : API_URLS.Expenses;
-
-  // Prepare payload according to type
+  
   let payload = {};
 
   if (transactionType === "donation") {
