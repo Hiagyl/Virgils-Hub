@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Get form values
     const scholarID = document.getElementById("scholarID").value.trim();
     const fullname = document.getElementById("fullname").value.trim();
-    const email = document.getElementById("email").value.trim();
+    // const email = document.getElementById("email").value.trim();
     const contactNo = document.getElementById("contactNo").value.trim();
     const picture = document.getElementById("picture").value.trim();
     const degreeProgram = document.getElementById("degreeProgram").value;
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = {
       scholarID,
       fullname,
-      email,
+      // email,
       contactNo,
       picture,
       degreeProgram,
@@ -122,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("editID").value = scholar._id;
     document.getElementById("scholarID").value = scholar.scholarID || "";
     document.getElementById("fullname").value = scholar.fullname || "";
-    document.getElementById("email").value = scholar.email || "";
+    // document.getElementById("email").value = scholar.email || "";
     document.getElementById("contactNo").value = scholar.contactNo || "";
     document.getElementById("picture").value = scholar.picture || "";
     document.getElementById("degreeProgram").value = scholar.degreeProgram || "";
@@ -140,7 +140,7 @@ document.addEventListener("DOMContentLoaded", () => {
       list = list.filter(
         (s) =>
           s.fullname.toLowerCase().includes(query) ||
-          (s.email && s.email.toLowerCase().includes(query)) ||
+          // (s.email && s.email.toLowerCase().includes(query)) ||
           s.contactNo.includes(query) ||
           s.degreeProgram.toLowerCase().includes(query) ||
           String(s.yearLevel).includes(query) ||
