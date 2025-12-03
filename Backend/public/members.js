@@ -1,261 +1,196 @@
-// API base URL
-const API_URL = 'http://localhost:5000/api/members';
+// Base API URL
+const API_URL = "http://localhost:5000/api/members";
 
-// DOM elements
-const membersTableBody = document.querySelector('.members-table tbody');
-const addMemberBtn = document.querySelector('.btn');
-const modal = document.getElementById('addMemberModal');
-const closeBtn = document.querySelector('.close');
-const cancelBtn = document.getElementById('cancelBtn');
-const addMemberForm = document.getElementById('addMemberForm');
-const searchInput = document.querySelector('.filters-card input[type="text"]');
-const statusFilter = document.querySelector('.filters-card select');
+const tableBody = document.getElementById("membersTableBody");
+const searchInput = document.getElementById("searchInput");
+const sortField = document.getElementById("sortField");
+const sortDirection = document.getElementById("sortDirection");
 
-// Load members on page load
-document.addEventListener('DOMContentLoaded', () => {
-  loadMembers();
-  setupEventListeners();
-});
+// Modal Elements
+const modal = document.getElementById("addMemberModal");
+const openModalBtn = document.getElementById("openAddModal");
+const closeModalBtn = document.getElementById("closeModal");
+const cancelBtn = document.getElementById("cancelBtn");
+const form = document.getElementById("addMemberForm");
+const modalTitle = document.getElementById("modalTitle");
 
-// Fetch and display all members
+const editID = document.getElementById("editID");
+const memberIDInput = document.getElementById("memberID");
+const fullnameInput = document.getElementById("fullname");
+const contactInput = document.getElementById("contactNo");
+const joinDateInput = document.getElementById("joinDate");
+const statusInput = document.getElementById("status");
+
+// ─────────────────────────────────────────────
+// LOAD MEMBERS
+// ─────────────────────────────────────────────
 async function loadMembers() {
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch members');
-    
-    const members = await response.json();
-    renderMembers(members);
-  } catch (error) {
-    console.error('Error loading members:', error);
-    showMessage('Failed to load members', 'error');
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    renderMembers(data);
+  } catch (err) {
+    console.error("Error loading members:", err);
   }
 }
 
-// Render members to the table
+// ─────────────────────────────────────────────
+// RENDER TABLE
+// ─────────────────────────────────────────────
 function renderMembers(members) {
-  if (!membersTableBody) return;
-  
-  membersTableBody.innerHTML = '';
-  
-  if (members.length === 0) {
-    membersTableBody.innerHTML = `
-      <tr>
-        <td colspan="5" style="text-align: center; padding: 20px;">
-          No members found. Click "Add Member" to create one.
-        </td>
-      </tr>
-    `;
-    return;
-  }
-  
+  // SEARCH
+  const searchValue = searchInput.value.toLowerCase();
+  members = members.filter(m =>
+    m.fullname.toLowerCase().includes(searchValue) ||
+    m.memberID.toLowerCase().includes(searchValue)
+  );
+
+  // SORT
+  const field = sortField.value;
+  const dir = sortDirection.value === "asc" ? 1 : -1;
+
+  members.sort((a, b) => {
+    let x = a[field];
+    let y = b[field];
+
+    if (field === "joinDate") {
+      x = new Date(x);
+      y = new Date(y);
+    }
+
+    return x > y ? dir : x < y ? -dir : 0;
+  });
+
+  tableBody.innerHTML = "";
+
   members.forEach(member => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${member.memberID}</td>
-      <td>${member.fullname}</td>
-      <td>${member.contactNo}</td>
-      <td>${new Date(member.joinDate).toLocaleDateString()}</td>
-      <td>
-        <span class="status-badge ${member.status}">
-          ${member.status.charAt(0).toUpperCase() + member.status.slice(1)}
-        </span>
-      </td>
-    `;
-    membersTableBody.appendChild(row);
+    const tr = document.createElement("tr");
+    tr.classList.add("fade-in");
+
+    tr.innerHTML = `
+            <td>${member.memberID}</td>
+            <td>${member.fullname}</td>
+            <td>${member.contactNo}</td>
+            <td>${new Date(member.joinDate).toLocaleDateString()}</td>
+            <td>${member.status}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="openEdit('${member._id}')">Edit</button>
+                <button class="action-btn delete-btn" onclick="deleteMember('${member._id}')">Delete</button>
+            </td>
+        `;
+
+    tableBody.appendChild(tr);
   });
 }
 
-// Setup event listeners
-function setupEventListeners() {
-  // Add Member button
-  if (addMemberBtn) {
-    addMemberBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      openModal();
-    });
-  }
-  
-  // Modal close buttons
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeModal);
-  }
-  
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', closeModal);
-  }
-  
-  // Click outside modal to close
-  window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-      closeModal();
-    }
-  });
-  
-  // Form submission
-  if (addMemberForm) {
-    addMemberForm.addEventListener('submit', handleAddMember);
-  }
-  
-  // Search filter
-  if (searchInput) {
-    searchInput.addEventListener('input', debounce(filterMembers, 300));
-  }
-  
-  // Status filter
-  if (statusFilter) {
-    statusFilter.addEventListener('change', filterMembers);
+// ─────────────────────────────────────────────
+// OPEN ADD MEMBER MODAL
+// ─────────────────────────────────────────────
+openModalBtn.onclick = () => {
+  modalTitle.textContent = "Add New Member";
+  editID.value = "";
+  form.reset();
+  modal.style.display = "block";
+};
+
+// ─────────────────────────────────────────────
+// OPEN EDIT MEMBER MODAL
+// ─────────────────────────────────────────────
+async function openEdit(id) {
+  try {
+    const res = await fetch(`${API_URL}/${id}`);
+    const member = await res.json();
+
+    modalTitle.textContent = "Edit Member";
+    editID.value = member._id;
+
+    memberIDInput.value = member.memberID;
+    fullnameInput.value = member.fullname;
+    contactInput.value = member.contactNo;
+    joinDateInput.value = member.joinDate.split("T")[0];
+    statusInput.value = member.status;
+
+    modal.style.display = "block";
+  } catch (err) {
+    console.error("Error loading member:", err);
   }
 }
 
-// Open modal
-function openModal() {
-  if (modal) {
-    modal.style.display = 'block';
-    addMemberForm.reset();
-    // Set today's date as default
-    document.getElementById('joinDate').valueAsDate = new Date();
-  }
-}
+window.openEdit = openEdit; // expose to HTML buttons
 
-// Close modal
-function closeModal() {
-  if (modal) {
-    modal.style.display = 'none';
-  }
-}
+// ─────────────────────────────────────────────
+// CLOSE MODAL
+// ─────────────────────────────────────────────
+closeModalBtn.onclick = () => modal.style.display = "none";
+cancelBtn.onclick = () => modal.style.display = "none";
 
-// Handle form submission
-async function handleAddMember(e) {
+window.onclick = (e) => {
+  if (e.target === modal) modal.style.display = "none";
+};
+
+// ─────────────────────────────────────────────
+// SUBMIT FORM (ADD OR EDIT)
+// ─────────────────────────────────────────────
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  
-  const memberData = {
-    memberID: document.getElementById('memberID').value.trim(),
-    fullname: document.getElementById('fullname').value.trim(),
-    contactNo: document.getElementById('contactNo').value.trim(),
-    joinDate: document.getElementById('joinDate').value || new Date().toISOString().split('T')[0],
-    status: document.getElementById('status').value
+
+  const member = {
+    memberID: memberIDInput.value,
+    fullname: fullnameInput.value,
+    contactNo: contactInput.value,
+    joinDate: joinDateInput.value || new Date(),
+    status: statusInput.value
   };
-  
-  // Validation
-  if (!memberData.memberID || !memberData.fullname || !memberData.contactNo) {
-    showMessage('Please fill in all required fields', 'error');
-    return;
-  }
-  
+
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(memberData)
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to add member');
+    if (editID.value) {
+      // UPDATE
+      await fetch(`${API_URL}/${editID.value}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(member)
+      });
+    } else {
+      // CREATE
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(member)
+      });
     }
-    
-    showMessage('Member added successfully!', 'success');
-    closeModal();
-    loadMembers(); // Refresh the table
-  } catch (error) {
-    console.error('Error adding member:', error);
-    showMessage(error.message || 'Failed to add member', 'error');
-  }
-}
 
-// Filter members based on search and status
-async function filterMembers() {
+    modal.style.display = "none";
+    loadMembers();
+
+  } catch (err) {
+    console.error("Error saving member:", err);
+  }
+});
+
+// ─────────────────────────────────────────────
+// DELETE MEMBER
+// ─────────────────────────────────────────────
+async function deleteMember(id) {
+  if (!confirm("Are you sure you want to delete this member?")) return;
+
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch members');
-    
-    let members = await response.json();
-    
-    // Apply search filter
-    const searchTerm = searchInput.value.toLowerCase();
-    if (searchTerm) {
-      members = members.filter(member => 
-        member.fullname.toLowerCase().includes(searchTerm) ||
-        member.memberID.toLowerCase().includes(searchTerm) ||
-        member.contactNo.includes(searchTerm)
-      );
-    }
-    
-    // Apply status filter
-    const statusValue = statusFilter.value.toLowerCase();
-    if (statusValue !== 'all') {
-      members = members.filter(member => member.status === statusValue);
-    }
-    
-    renderMembers(members);
-  } catch (error) {
-    console.error('Error filtering members:', error);
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadMembers();
+  } catch (err) {
+    console.error("Error deleting member:", err);
   }
 }
 
-// Utility: Debounce function for search
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
+window.deleteMember = deleteMember;
 
-// Utility: Show message to user
-function showMessage(message, type) {
-  // Remove existing message
-  const existingMessage = document.querySelector('.message');
-  if (existingMessage) existingMessage.remove();
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${type}`;
-  messageDiv.textContent = message;
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 10px 20px;
-    border-radius: 4px;
-    color: white;
-    z-index: 1000;
-    animation: slideIn 0.3s ease;
-  `;
-  
-  if (type === 'success') {
-    messageDiv.style.backgroundColor = '#4CAF50';
-  } else {
-    messageDiv.style.backgroundColor = '#f44336';
-  }
-  
-  document.body.appendChild(messageDiv);
-  
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => messageDiv.remove(), 300);
-    }
-  }, 3000);
-}
+// ─────────────────────────────────────────────
+// SEARCH + SORT LISTENERS
+// ─────────────────────────────────────────────
+searchInput.addEventListener("input", loadMembers);
+sortField.addEventListener("change", loadMembers);
+sortDirection.addEventListener("change", loadMembers);
 
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
+// ─────────────────────────────────────────────
+// INIT LOAD
+// ─────────────────────────────────────────────
+loadMembers();

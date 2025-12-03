@@ -5,72 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>UP Vis — Scholars Management</title>
 <link rel="stylesheet" href="styles.css">
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+.sort-controls select {
+  padding: 6px 10px;
+  background: #0f152f;
+  border: 1px solid #243059;
+  border-radius: 6px;
+  color: white;
+}
+.action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.view-btn { background:#3b82f6; color:white; margin-right:4px; }
+.edit-btn { background:#16a34a; color:white; margin-right:4px; }
+.delete-btn { background:#ef4444; color:white; }
+</style>
 </head>
+
 <body>
 <div class="app">
+
   <aside class="sidebar">
     <div class="brand">
       <div class="logo"></div>
-      <div><h1>UP Vis</h1><div class="sub">Scholar Support and Donation Management System</div></div>
+      <div>
+        <h1>UP Vis</h1>
+        <div class="sub">Scholar Support and Donation Management System</div>
+      </div>
     </div>
+
     <nav class="nav">
       <h3>Finance</h3>
-      <a href="#/finance" data-route><span class="icon">D</span> Dashboard</a>
-      <a href="#/transactions" data-route><span class="icon">T</span> Transactions</a>
-      <a href="#/distributions" data-route><span class="icon">D</span> Distributions</a>
-      <a href="#/scholars" data-route class="active"><span class="icon">S</span> Scholars</a>
-      <a href="#/members" data-route><span class="icon">M</span> Members</a>
+      <a href="finance.html"><span class="icon">D</span> Dashboard</a>
+      <a href="transactions.html"><span class="icon">T</span> Transactions</a>
+      <a href="distributions.html"><span class="icon">D</span> Distributions</a>
+      <a href="scholars.html"><span class="icon">S</span> Scholars</a>
+      <a href="members.html"><span class="icon">M</span> Members</a>
     </nav>
   </aside>
 
   <main class="main">
+
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="env-badge">Environment: <strong>Prototype</strong></div>
-        <div class="search-bar">
-          <span style="color:#6b7893">🔍</span>
-          <input type="text" id="searchInput" placeholder="Search by name, program, or ID..." />
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-btn">Backups ✓</div>
-        <div class="topbar-btn">Unread: 3</div>
+      <div class="search-bar">
+        <span style="color:#6b7893">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search scholars…">
       </div>
     </header>
 
     <section class="content">
+
       <div class="page-header">
         <h2>Organization Scholars</h2>
-        <button id="addScholarBtn" class="btn">+ Add Scholar</button>
+        <button id="addScholarBtn" class="btn primary">+ Add Scholar</button>
       </div>
 
-      <div class="filters-card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Search</label>
-            <input type="text" id="searchFilter" placeholder="Name, program, or ID">
-          </div>
-          <div class="filter-group">
-            <label>Status</label>
-            <select id="statusFilter">
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="graduate">Graduated</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Year Level</label>
-            <select id="yearFilter">
-              <option value="all">All Years</option>
-              <option value="1">1st Year</option>
-              <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
-              <option value="5">5th Year</option>
-            </select>
-          </div>
-        </div>
+      <!-- SORT CONTROLS (Final Unified Style) -->
+      <div class="sort-controls" style="display:flex; gap:12px; align-items:center; margin-bottom:12px;">
+        <label><strong>Sort by:</strong></label>
+
+        <select id="sortField">
+          <option value="name">Name</option>
+          <option value="id">ID</option>
+          <option value="program">Program</option>
+          <option value="yearLevel">Year Level</option>
+          <option value="status">Status</option>
+        </select>
+
+        <select id="sortDirection">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
       </div>
 
       <div class="table-container">
@@ -87,50 +101,58 @@
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="scholarsTableBody">
-            <!-- Data will be loaded here -->
-          </tbody>
+          <tbody id="scholarsTableBody"></tbody>
         </table>
       </div>
+
     </section>
   </main>
 </div>
 
-<!-- Add Scholar Modal -->
-<div id="addScholarModal" class="modal">
+
+<!-- ADD/EDIT SCHOLAR MODAL -->
+<div id="addScholarModal" class="modal" style="display:none;">
   <div class="modal-content">
     <div class="modal-header">
-      <h3>Add New Scholar</h3>
+      <h3 id="modalTitle">Add New Scholar</h3>
       <span class="close">&times;</span>
     </div>
+
     <div class="modal-body">
       <form id="addScholarForm">
+
+        <input type="hidden" id="editID">
+
         <div class="form-row">
+            <div class="form-group">
+              <label>Scholar ID</label>
+              <input type="text" id="scholarID" required>
+            </div>
           <div class="form-group">
-            <label for="fullname">Full Name *</label>
-            <input type="text" id="fullname" name="fullname" required>
+            <label>Full Name *</label>
+            <input type="text" id="fullname" required>
           </div>
           <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" name="email">
+            <label>Email</label>
+            <input type="email" id="email">
           </div>
         </div>
-        
+
         <div class="form-row">
           <div class="form-group">
-            <label for="contactNo">Contact Number *</label>
-            <input type="text" id="contactNo" name="contactNo" required>
+            <label>Contact Number *</label>
+            <input type="text" id="contactNo" required>
           </div>
           <div class="form-group">
-            <label for="picture">Picture URL</label>
-            <input type="text" id="picture" name="picture" placeholder="https://...">
+            <label>Picture URL</label>
+            <input type="text" id="picture" placeholder="https://…">
           </div>
         </div>
-        
+
         <div class="form-row">
           <div class="form-group">
-            <label for="degreeProgram">Degree Program *</label>
-            <select id="degreeProgram" name="degreeProgram" required>
+            <label>Degree Program *</label>
+            <select id="degreeProgram" required>
               <option value="">Select Program</option>
               <option value="BS Computer Science">BS Computer Science</option>
               <option value="BS Information Technology">BS Information Technology</option>
@@ -144,9 +166,10 @@
               <option value="BS Nursing">BS Nursing</option>
             </select>
           </div>
+
           <div class="form-group">
-            <label for="yearLevel">Year Level *</label>
-            <select id="yearLevel" name="yearLevel" required>
+            <label>Year Level *</label>
+            <select id="yearLevel" required>
               <option value="">Select Year</option>
               <option value="1">1st Year</option>
               <option value="2">2nd Year</option>
@@ -156,71 +179,68 @@
             </select>
           </div>
         </div>
-        
+
         <div class="form-group">
-          <label for="status">Status</label>
-          <select id="status" name="status">
+          <label>Status</label>
+          <select id="status">
             <option value="active">Active</option>
             <option value="graduate">Graduated</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-        
+
         <div class="form-actions">
           <button type="button" class="btn-secondary" id="cancelScholarBtn">Cancel</button>
-          <button type="submit" class="btn-primary">Add Scholar</button>
+          <button type="submit" class="btn-primary">Save Scholar</button>
         </div>
+
       </form>
     </div>
   </div>
 </div>
 
-<!-- Scholar Details Modal -->
-<div id="detailsModal" class="modal">
+<!-- DETAILS MODAL (Unchanged) -->
+<div id="detailsModal" class="modal" style="display:none;">
   <div class="modal-content wide-modal">
     <div class="modal-header">
       <h3>Scholar Details</h3>
       <span class="close">&times;</span>
     </div>
+
     <div class="modal-body">
       <div class="scholar-details">
         <div class="scholar-profile">
-          <div class="profile-pic" id="detailPicture">
-            <i class="fas fa-user-graduate"></i>
-          </div>
+          <div class="profile-pic" id="detailPicture"></div>
           <div class="profile-info">
-            <h2 id="detailName">Loading...</h2>
-            <p id="detailProgram">Program: Loading...</p>
-            <p id="detailContact">Contact: Loading...</p>
+            <h2 id="detailName"></h2>
+            <p id="detailProgram"></p>
+            <p id="detailContact"></p>
           </div>
         </div>
+
         <div class="details-grid">
-          <div class="detail-item">
-            <label>Scholar ID:</label>
-            <span id="detailID">-</span>
-          </div>
-          <div class="detail-item">
-            <label>Year Level:</label>
-            <span id="detailYear">-</span>
-          </div>
-          <div class="detail-item">
-            <label>Status:</label>
-            <span id="detailStatus">-</span>
-          </div>
-          <div class="detail-item">
-            <label>Email:</label>
-            <span id="detailEmail">-</span>
-          </div>
-          <div class="detail-item">
-            <label>Date Added:</label>
-            <span id="detailDate">-</span>
-          </div>
+          <div class="detail-item"><label>Scholar ID:</label> <span id="detailID"></span></div>
+          <div class="detail-item"><label>Year Level:</label> <span id="detailYear"></span></div>
+          <div class="detail-item"><label>Status:</label> <span id="detailStatus"></span></div>
+          <div class="detail-item"><label>Email:</label> <span id="detailEmail"></span></div>
+          <div class="detail-item"><label>Date Added:</label> <span id="detailDate"></span></div>
         </div>
+
       </div>
     </div>
   </div>
 </div>
 
 <script src="scholars.js"></script>
+
+<script>
+(function(){
+  const current = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav a").forEach(a =>
+    a.classList.toggle("active", a.getAttribute("href") === current)
+  );
+})();
+</script>
+
 </body>
 </html>

@@ -26,13 +26,14 @@ exports.getById = async (req, res) => {
 //Create a new scholar
 exports.create = async (req, res) => {
     try {
-        const { fullname, picture, status, degreeProgram, yearLevel, contactNo } = req.body;
+        const { scholarID, fullname, picture, status, degreeProgram, yearLevel, contactNo } = req.body;
 
-        if (!fullname || !degreeProgram || !yearLevel || !contactNo) {
+        if (!scholarID || !fullname || !degreeProgram || !yearLevel || !contactNo) {
             return res.status(400).json({ message: "Missing required fields" });
         }
 
         const newScholar = new Scholar({
+            scholarID,
             fullname,
             picture,
             status,

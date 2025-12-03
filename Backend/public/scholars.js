@@ -1,407 +1,291 @@
-// API Configuration
-const API_URL = 'http://localhost:5000/api/scholars';
+const API_URL = "http://localhost:5000/api/scholars";
 
-// DOM Elements
-const addScholarBtn = document.getElementById('addScholarBtn');
-const addScholarModal = document.getElementById('addScholarModal');
-const detailsModal = document.getElementById('detailsModal');
-const closeBtns = document.querySelectorAll('.close');
-const cancelScholarBtn = document.getElementById('cancelScholarBtn');
-const addScholarForm = document.getElementById('addScholarForm');
-const scholarsTableBody = document.getElementById('scholarsTableBody');
-const searchFilter = document.getElementById('searchFilter');
-const statusFilter = document.getElementById('statusFilter');
-const yearFilter = document.getElementById('yearFilter');
+// DOM elements
+const addScholarBtn = document.getElementById("addScholarBtn");
+const addScholarModal = document.getElementById("addScholarModal");
+const detailsModal = document.getElementById("detailsModal");
+const addScholarForm = document.getElementById("addScholarForm");
+const cancelScholarBtn = document.getElementById("cancelScholarBtn");
+const modalTitle = document.getElementById("modalTitle");
 
-// Load scholars on page load
-document.addEventListener('DOMContentLoaded', () => {
+const searchInput = document.getElementById("searchInput");
+
+const sortField = document.getElementById("sortField");
+const sortDirection = document.getElementById("sortDirection");
+
+const scholarsTableBody = document.getElementById("scholarsTableBody");
+
+let scholars = []; // Local copy for search/sort
+
+
+// ===================================
+// INIT
+// ===================================
+document.addEventListener("DOMContentLoaded", () => {
   loadScholars();
-  setupEventListeners();
+  setupListeners();
 });
 
-// Fetch and display all scholars
+
+// ===================================
+// LOAD LIST
+// ===================================
 async function loadScholars() {
   try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch scholars');
-    
-    const scholars = await response.json();
-    renderScholars(scholars);
-  } catch (error) {
-    console.error('Error loading scholars:', error);
-    showMessage('Failed to load scholars', 'error');
+    const res = await fetch(API_URL);
+    scholars = await res.json();
+    updateDisplay();
+  } catch (err) {
+    console.error("Failed to load scholars");
   }
 }
 
-// Render scholars to the table
-function renderScholars(scholars) {
-  if (!scholarsTableBody) return;
-  
-  scholarsTableBody.innerHTML = '';
-  
-  if (!scholars || scholars.length === 0) {
+
+// ===================================
+// UPDATE DISPLAY
+// ===================================
+function updateDisplay() {
+  let list = applySearch(scholars);
+  list = applySorting(list);
+  renderScholars(list);
+}
+
+
+// ===================================
+// SEARCH
+// ===================================
+function applySearch(list) {
+  const q = searchInput.value.toLowerCase();
+  if (!q) return list;
+
+  return list.filter(s =>
+    (s.fullname || "").toLowerCase().includes(q) ||
+    (s.degreeProgram || "").toLowerCase().includes(q) ||
+    (s.scholarID || "").toLowerCase().includes(q) ||
+    (s.contactNo || "").toLowerCase().includes(q)
+  );
+}
+
+searchInput.addEventListener("input", updateDisplay);
+
+
+// ===================================
+// SORTING
+// ===================================
+sortField.addEventListener("change", updateDisplay);
+sortDirection.addEventListener("change", updateDisplay);
+
+function applySorting(list) {
+  const field = sortField.value;
+  const dir = sortDirection.value === "asc" ? 1 : -1;
+
+  return [...list].sort((a, b) => {
+    if (field === "id") return (a.scholarID || "").localeCompare(b.scholarID || "") * dir;
+    if (field === "name") return a.fullname.localeCompare(b.fullname) * dir;
+    if (field === "program") return a.degreeProgram.localeCompare(b.degreeProgram) * dir;
+    if (field === "yearLevel") return (a.yearLevel - b.yearLevel) * dir;
+    if (field === "status") return a.status.localeCompare(b.status) * dir;
+    return 0;
+  });
+}
+
+
+// ===================================
+// RENDER TABLE
+// ===================================
+function renderScholars(list) {
+  scholarsTableBody.innerHTML = "";
+
+  if (!list.length) {
     scholarsTableBody.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align: center; padding: 40px;">
-          <div style="color: #666; font-size: 16px;">
-            <i class="fas fa-user-graduate" style="font-size: 48px; margin-bottom: 16px; display: block; opacity: 0.5;"></i>
-            No scholars found. Click "Add Scholar" to create one.
-          </div>
-        </td>
-      </tr>
-    `;
+      <tr><td colspan="8" style="padding:40px; text-align:center">No scholars found.</td></tr>`;
     return;
   }
-  
-  scholars.forEach(scholar => {
-    const row = document.createElement('tr');
-    
-    // Format year level
-    const yearText = scholar.yearLevel === 1 ? '1st' : 
-                     scholar.yearLevel === 2 ? '2nd' : 
-                     scholar.yearLevel === 3 ? '3rd' : 
-                     scholar.yearLevel === 4 ? '4th' : '5th';
-    
-    // Status badge
-    const statusClass = scholar.status === 'active' ? 'active' : 
-                       scholar.status === 'graduate' ? 'graduate' : 'inactive';
-    const statusText = scholar.status === 'active' ? 'Active' : 
-                      scholar.status === 'graduate' ? 'Graduated' : 'Inactive';
-    
+
+  list.forEach(s => {
+    const row = document.createElement("tr");
+    row.classList.add("fade-in");
+
+    const yearLabel = ["", "1st", "2nd", "3rd", "4th", "5th"][s.yearLevel];
+
     row.innerHTML = `
-      <td><strong>${scholar.scholarID || 'N/A'}</strong></td>
+      <td>${s.scholarID || "N/A"}</td>
       <td>
         <div class="table-avatar">
-          ${scholar.picture ? 
-            `<img src="${scholar.picture}" alt="${scholar.fullname}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍🎓</text></svg>'">` : 
-            '<div class="avatar-placeholder"><i class="fas fa-user-graduate"></i></div>'}
+          ${s.picture ? `<img src="${s.picture}">` : `<div class="avatar-placeholder"></div>`}
         </div>
       </td>
-      <td><strong>${scholar.fullname}</strong></td>
-      <td>${scholar.degreeProgram || 'N/A'}</td>
-      <td>${yearText} Year</td>
-      <td>${scholar.contactNo || 'N/A'}</td>
-      <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+      <td><strong>${s.fullname}</strong></td>
+      <td>${s.degreeProgram}</td>
+      <td>${yearLabel} Year</td>
+      <td>${s.contactNo}</td>
+      <td><span class="status-badge ${s.status}">${capitalize(s.status)}</span></td>
       <td>
-        <div class="action-buttons">
-          <button class="action-btn view-btn" data-id="${scholar._id}" title="View Details">
-            <i class="fas fa-eye"></i>
-          </button>
-          <button class="action-btn edit-btn" data-id="${scholar._id}" title="Edit">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="action-btn delete-btn" data-id="${scholar._id}" title="Delete">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
+        <button class="action-btn view-btn" data-id="${s._id}">View</button>
+        <button class="action-btn edit-btn" data-id="${s._id}">Edit</button>
+        <button class="action-btn delete-btn" data-id="${s._id}">Delete</button>
       </td>
     `;
-    
+
     scholarsTableBody.appendChild(row);
   });
-  
-  // Attach event listeners to action buttons
+
   attachActionListeners();
 }
 
-// Setup event listeners
-function setupEventListeners() {
-  // Add Scholar button
-  if (addScholarBtn) {
-    addScholarBtn.addEventListener('click', openAddModal);
-  }
-  
-  // Modal close buttons
-  closeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      addScholarModal.style.display = 'none';
-      detailsModal.style.display = 'none';
-    });
-  });
-  
-  // Cancel button
-  if (cancelScholarBtn) {
-    cancelScholarBtn.addEventListener('click', () => {
-      addScholarModal.style.display = 'none';
-    });
-  }
-  
-  // Click outside modal to close
-  window.addEventListener('click', (e) => {
-    if (e.target === addScholarModal) addScholarModal.style.display = 'none';
-    if (e.target === detailsModal) detailsModal.style.display = 'none';
-  });
-  
-  // Form submission
-  if (addScholarForm) {
-    addScholarForm.addEventListener('submit', handleAddScholar);
-  }
-  
-  // Filter events
-  if (searchFilter) {
-    searchFilter.addEventListener('input', debounce(filterScholars, 300));
-  }
-  if (statusFilter) {
-    statusFilter.addEventListener('change', filterScholars);
-  }
-  if (yearFilter) {
-    yearFilter.addEventListener('change', filterScholars);
-  }
-}
 
-// Open add scholar modal
-function openAddModal() {
-  addScholarModal.style.display = 'block';
-  addScholarForm.reset();
-  // Set current date as default
-  document.getElementById('status').value = 'active';
-}
-
-// Handle form submission
-async function handleAddScholar(e) {
-  e.preventDefault();
-  
-  const scholarData = {
-    fullname: document.getElementById('fullname').value.trim(),
-    picture: document.getElementById('picture').value.trim() || '',
-    status: document.getElementById('status').value,
-    degreeProgram: document.getElementById('degreeProgram').value,
-    yearLevel: parseInt(document.getElementById('yearLevel').value),
-    contactNo: document.getElementById('contactNo').value.trim(),
-    email: document.getElementById('email').value.trim() || ''
-  };
-  
-  // Validation
-  if (!scholarData.fullname || !scholarData.degreeProgram || 
-      !scholarData.yearLevel || !scholarData.contactNo) {
-    showMessage('Please fill in all required fields', 'error');
-    return;
-  }
-  
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(scholarData)
-    });
-    
-    const data = await response.json();
-    
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to add scholar');
-    }
-    
-    showMessage('Scholar added successfully!', 'success');
-    addScholarModal.style.display = 'none';
-    loadScholars(); // Refresh the table
-  } catch (error) {
-    console.error('Error adding scholar:', error);
-    showMessage(error.message || 'Failed to add scholar', 'error');
-  }
-}
-
-// Attach listeners to action buttons
+// ===================================
+// ACTION LISTENERS
+// ===================================
 function attachActionListeners() {
-  // View buttons
-  document.querySelectorAll('.view-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const scholarId = e.currentTarget.dataset.id;
-      showScholarDetails(scholarId);
-    });
+  document.querySelectorAll(".view-btn").forEach(btn =>
+    btn.onclick = () => showScholarDetails(btn.dataset.id)
+  );
+
+  document.querySelectorAll(".edit-btn").forEach(btn =>
+    btn.onclick = () => startEdit(btn.dataset.id)
+  );
+
+  document.querySelectorAll(".delete-btn").forEach(btn =>
+    btn.onclick = () => deleteScholar(btn.dataset.id)
+  );
+}
+
+
+// ===================================
+// ADD OR EDIT
+// ===================================
+addScholarForm.addEventListener("submit", handleSaveScholar);
+
+function handleSaveScholar(e) {
+  e.preventDefault();
+
+  const id = document.getElementById("editID").value;
+  const data = {
+    scholarID: scholarID.value.trim(),
+    fullname: fullname.value.trim(),
+    email: email.value.trim(),
+    contactNo: contactNo.value.trim(),
+    picture: picture.value.trim(),
+    degreeProgram: degreeProgram.value,
+    yearLevel: Number(yearLevel.value),
+    status: status.value
+  };
+
+  if (!id) {
+    return createScholar(data);
+  } else {
+    return updateScholar(id, data);
+  }
+}
+
+async function createScholar(data) {
+  await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
   });
-  
-  // Edit buttons
-  document.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const scholarId = e.currentTarget.dataset.id;
-      editScholar(scholarId);
-    });
+
+  closeAddModal();
+  loadScholars();
+}
+
+async function updateScholar(id, data) {
+  await fetch(`${API_URL}/${id}`, {
+    method: "PUT",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
   });
-  
-  // Delete buttons
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const scholarId = e.currentTarget.dataset.id;
-      deleteScholar(scholarId);
-    });
-  });
+
+  closeAddModal();
+  loadScholars();
 }
 
-// Show scholar details
-async function showScholarDetails(scholarId) {
-  try {
-    const response = await fetch(`${API_URL}/${scholarId}`);
-    if (!response.ok) throw new Error('Failed to fetch scholar details');
-    
-    const scholar = await response.json();
-    
-    // Populate details modal
-    document.getElementById('detailName').textContent = scholar.fullname;
-    document.getElementById('detailProgram').textContent = `Program: ${scholar.degreeProgram}`;
-    document.getElementById('detailContact').textContent = `Contact: ${scholar.contactNo}`;
-    document.getElementById('detailID').textContent = scholar.scholarID || 'N/A';
-    document.getElementById('detailYear').textContent = scholar.yearLevel ? 
-      (scholar.yearLevel === 1 ? '1st Year' : 
-       scholar.yearLevel === 2 ? '2nd Year' : 
-       scholar.yearLevel === 3 ? '3rd Year' : 
-       scholar.yearLevel === 4 ? '4th Year' : '5th Year') : 'N/A';
-    document.getElementById('detailStatus').textContent = scholar.status ? 
-      scholar.status.charAt(0).toUpperCase() + scholar.status.slice(1) : 'N/A';
-    document.getElementById('detailEmail').textContent = scholar.email || 'N/A';
-    document.getElementById('detailDate').textContent = scholar.dateAdded ? 
-      new Date(scholar.dateAdded).toLocaleDateString() : 'N/A';
-    
-    // Set picture if available
-    const pictureElement = document.getElementById('detailPicture');
-    if (scholar.picture) {
-      pictureElement.innerHTML = `<img src="${scholar.picture}" alt="${scholar.fullname}" 
-        onerror="this.parentElement.innerHTML='<i class=\"fas fa-user-graduate\"></i>'">`;
-    } else {
-      pictureElement.innerHTML = '<i class="fas fa-user-graduate"></i>';
-    }
-    
-    // Show modal
-    detailsModal.style.display = 'block';
-  } catch (error) {
-    console.error('Error loading scholar details:', error);
-    showMessage('Failed to load scholar details', 'error');
-  }
+
+function startEdit(id) {
+  const s = scholars.find(x => x._id === id);
+  if (!s) return;
+
+  modalTitle.textContent = "Edit Scholar";
+  addScholarModal.style.display = "block";
+
+  document.getElementById("editID").value = s._id;
+  scholarID.value = s.scholarID || "";
+  fullname.value = s.fullname;
+  email.value = s.email || "";
+  contactNo.value = s.contactNo;
+  picture.value = s.picture || "";
+  degreeProgram.value = s.degreeProgram;
+  yearLevel.value = s.yearLevel;
+  status.value = s.status;
 }
 
-// Edit scholar
-function editScholar(scholarId) {
-  showMessage('Edit functionality coming soon!', 'info');
-  // You can implement edit modal similar to add modal
+
+// ===================================
+// DELETE
+// ===================================
+async function deleteScholar(id) {
+  if (!confirm("Delete this scholar?")) return;
+
+  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+  loadScholars();
 }
 
-// Delete scholar
-async function deleteScholar(scholarId) {
-  if (!confirm('Are you sure you want to delete this scholar? This action cannot be undone.')) {
-    return;
-  }
-  
-  try {
-    const response = await fetch(`${API_URL}/${scholarId}`, {
-      method: 'DELETE'
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to delete scholar');
-    }
-    
-    showMessage('Scholar deleted successfully!', 'success');
-    loadScholars(); // Refresh the table
-  } catch (error) {
-    console.error('Error deleting scholar:', error);
-    showMessage('Failed to delete scholar', 'error');
-  }
+
+// ===================================
+// VIEW DETAILS
+// ===================================
+async function showScholarDetails(id) {
+  const res = await fetch(`${API_URL}/${id}`);
+  const s = await res.json();
+
+  detailName.textContent = s.fullname;
+  detailProgram.textContent = "Program: " + s.degreeProgram;
+  detailContact.textContent = "Contact: " + s.contactNo;
+  detailID.textContent = s.scholarID || "N/A";
+  detailYear.textContent = s.yearLevel + " Year";
+  detailStatus.textContent = capitalize(s.status);
+  detailEmail.textContent = s.email || "N/A";
+  detailDate.textContent = new Date(s.dateAdded).toLocaleDateString();
+
+  detailPicture.innerHTML = s.picture
+    ? `<img src="${s.picture}"/>`
+    : `<div class="avatar-placeholder"></div>`;
+
+  detailsModal.style.display = "block";
 }
 
-// Filter scholars
-async function filterScholars() {
-  try {
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Failed to fetch scholars');
-    
-    let scholars = await response.json();
-    
-    // Apply search filter
-    const searchTerm = searchFilter.value.toLowerCase();
-    if (searchTerm) {
-      scholars = scholars.filter(scholar => 
-        (scholar.fullname && scholar.fullname.toLowerCase().includes(searchTerm)) ||
-        (scholar.degreeProgram && scholar.degreeProgram.toLowerCase().includes(searchTerm)) ||
-        (scholar.scholarID && scholar.scholarID.toLowerCase().includes(searchTerm)) ||
-        (scholar.contactNo && scholar.contactNo.includes(searchTerm))
-      );
-    }
-    
-    // Apply status filter
-    const statusValue = statusFilter.value;
-    if (statusValue !== 'all') {
-      scholars = scholars.filter(scholar => scholar.status === statusValue);
-    }
-    
-    // Apply year filter
-    const yearValue = yearFilter.value;
-    if (yearValue !== 'all') {
-      scholars = scholars.filter(scholar => scholar.yearLevel == yearValue);
-    }
-    
-    renderScholars(scholars);
-  } catch (error) {
-    console.error('Error filtering scholars:', error);
-  }
-}
 
-// Utility: Debounce function
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
+function setupListeners() {
+  addScholarBtn.onclick = openAddModal;
+  cancelScholarBtn.onclick = closeAddModal;
+
+  document.querySelectorAll(".modal .close").forEach(btn =>
+    btn.onclick = () => {
+      addScholarModal.style.display = "none";
+      detailsModal.style.display = "none";
+    }
+  );
+
+  window.onclick = (e) => {
+    if (e.target === addScholarModal) closeAddModal();
+    if (e.target === detailsModal) detailsModal.style.display = "none";
   };
 }
 
-// Utility: Show message to user
-function showMessage(message, type) {
-  // Remove existing message
-  const existingMessage = document.querySelector('.message');
-  if (existingMessage) existingMessage.remove();
-  
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${type}`;
-  messageDiv.textContent = message;
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 12px 24px;
-    border-radius: 6px;
-    color: white;
-    z-index: 10000;
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    animation: slideIn 0.3s ease;
-  `;
-  
-  if (type === 'success') {
-    messageDiv.style.backgroundColor = '#10b981';
-  } else if (type === 'error') {
-    messageDiv.style.backgroundColor = '#ef4444';
-  } else if (type === 'info') {
-    messageDiv.style.backgroundColor = '#3b82f6';
-  } else {
-    messageDiv.style.backgroundColor = '#6b7280';
-  }
-  
-  document.body.appendChild(messageDiv);
-  
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    if (messageDiv.parentNode) {
-      messageDiv.style.animation = 'slideOut 0.3s ease';
-      setTimeout(() => messageDiv.remove(), 300);
-    }
-  }, 3000);
+function openAddModal() {
+  modalTitle.textContent = "Add New Scholar";
+  addScholarForm.reset();
+  document.getElementById("editID").value = "";
+  addScholarModal.style.display = "block";
 }
 
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
+function closeAddModal() {
+  addScholarModal.style.display = "none";
+}
+
+
+// ===================================
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}

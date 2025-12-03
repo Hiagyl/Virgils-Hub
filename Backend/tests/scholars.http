@@ -1,5 +1,5 @@
 ### GET all scholars
-GET http://localhost:3000/api/scholars
+GET http://localhost:5000/api/scholars
 Accept: application/json
 
 ###
