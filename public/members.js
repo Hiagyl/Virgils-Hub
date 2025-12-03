@@ -1,224 +1,196 @@
+// Base API URL
 const API_URL = "http://localhost:5000/api/members";
 
-// DOM Elements
-const membersTableBody = document.getElementById("membersTableBody");
-const addMemberModal = document.getElementById("addMemberModal");
-const addMemberForm = document.getElementById("addMemberForm");
-const openAddModal = document.getElementById("openAddModal");
-const closeModal = document.getElementById("closeModal");
-const cancelBtn = document.getElementById("cancelBtn");
-const modalTitle = document.getElementById("modalTitle");
-
+const tableBody = document.getElementById("membersTableBody");
 const searchInput = document.getElementById("searchInput");
 const sortField = document.getElementById("sortField");
 const sortDirection = document.getElementById("sortDirection");
 
-let members = []; // local store
+// Modal Elements
+const modal = document.getElementById("addMemberModal");
+const openModalBtn = document.getElementById("openAddModal");
+const closeModalBtn = document.getElementById("closeModal");
+const cancelBtn = document.getElementById("cancelBtn");
+const form = document.getElementById("addMemberForm");
+const modalTitle = document.getElementById("modalTitle");
 
+const editID = document.getElementById("editID");
+const memberIDInput = document.getElementById("memberID");
+const fullnameInput = document.getElementById("fullname");
+const contactInput = document.getElementById("contactNo");
+const joinDateInput = document.getElementById("joinDate");
+const statusInput = document.getElementById("status");
 
-// INITIAL LOAD
-document.addEventListener("DOMContentLoaded", () => {
-  loadMembers();
-  setupListeners();
-});
-
-
+// ─────────────────────────────────────────────
 // LOAD MEMBERS
+// ─────────────────────────────────────────────
 async function loadMembers() {
   try {
     const res = await fetch(API_URL);
-    members = await res.json();
-    updateDisplay();
+    const data = await res.json();
+    renderMembers(data);
   } catch (err) {
-    console.error("Failed to load members");
+    console.error("Error loading members:", err);
   }
 }
 
-
-// MAIN DISPLAY HANDLER (search + sort)
-function updateDisplay() {
-  let list = applySearch(members);
-  list = applySorting(list);
-  renderMembers(list);
-}
-
-
+// ─────────────────────────────────────────────
 // RENDER TABLE
-function renderMembers(list) {
-  membersTableBody.innerHTML = "";
-
-  if (!list.length) {
-    membersTableBody.innerHTML =
-      `<tr><td colspan="6" style="padding:20px; text-align:center;">No members found.</td></tr>`;
-    return;
-  }
-
-  list.forEach(mem => {
-    const row = document.createElement("tr");
-    row.classList.add("fade-in");
-
-    row.innerHTML = `
-      <td>${mem.memberID}</td>
-      <td>${mem.fullname}</td>
-      <td>${mem.contactNo}</td>
-      <td>${new Date(mem.joinDate).toLocaleDateString()}</td>
-      <td><span class="status-badge ${mem.status}">
-          ${mem.status.charAt(0).toUpperCase() + mem.status.slice(1)}
-      </span></td>
-      <td>
-        <button class="action-btn edit-btn" data-id="${mem._id}">Edit</button>
-        <button class="action-btn delete-btn" data-id="${mem._id}">Delete</button>
-      </td>
-    `;
-
-    membersTableBody.appendChild(row);
-  });
-
-  attachRowActions();
-}
-
-
-// =============================
-// SEARCH
-// =============================
-function applySearch(list) {
-  const q = searchInput.value.toLowerCase();
-  if (!q) return list;
-
-  return list.filter(m =>
-    m.memberID.toLowerCase().includes(q) ||
-    m.fullname.toLowerCase().includes(q) ||
-    m.contactNo.includes(q)
+// ─────────────────────────────────────────────
+function renderMembers(members) {
+  // SEARCH
+  const searchValue = searchInput.value.toLowerCase();
+  members = members.filter(m =>
+    m.fullname.toLowerCase().includes(searchValue) ||
+    m.memberID.toLowerCase().includes(searchValue)
   );
-}
 
-searchInput.addEventListener("input", updateDisplay);
-
-
-// =============================
-// SORTING
-// =============================
-sortField.addEventListener("change", updateDisplay);
-sortDirection.addEventListener("change", updateDisplay);
-
-function applySorting(list) {
+  // SORT
   const field = sortField.value;
   const dir = sortDirection.value === "asc" ? 1 : -1;
 
-  return [...list].sort((a, b) => {
+  members.sort((a, b) => {
+    let x = a[field];
+    let y = b[field];
+
     if (field === "joinDate") {
-      return (new Date(a.joinDate) - new Date(b.joinDate)) * dir;
+      x = new Date(x);
+      y = new Date(y);
     }
-    return a[field].localeCompare(b[field]) * dir;
+
+    return x > y ? dir : x < y ? -dir : 0;
+  });
+
+  tableBody.innerHTML = "";
+
+  members.forEach(member => {
+    const tr = document.createElement("tr");
+    tr.classList.add("fade-in");
+
+    tr.innerHTML = `
+            <td>${member.memberID}</td>
+            <td>${member.fullname}</td>
+            <td>${member.contactNo}</td>
+            <td>${new Date(member.joinDate).toLocaleDateString()}</td>
+            <td>${member.status}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="openEdit('${member._id}')">Edit</button>
+                <button class="action-btn delete-btn" onclick="deleteMember('${member._id}')">Delete</button>
+            </td>
+        `;
+
+    tableBody.appendChild(tr);
   });
 }
 
+// ─────────────────────────────────────────────
+// OPEN ADD MEMBER MODAL
+// ─────────────────────────────────────────────
+openModalBtn.onclick = () => {
+  modalTitle.textContent = "Add New Member";
+  editID.value = "";
+  form.reset();
+  modal.style.display = "block";
+};
 
-// =============================
-// ADD / EDIT / DELETE
-// =============================
-function attachRowActions() {
-  document.querySelectorAll(".edit-btn").forEach(btn =>
-    btn.onclick = () => startEdit(btn.dataset.id)
-  );
+// ─────────────────────────────────────────────
+// OPEN EDIT MEMBER MODAL
+// ─────────────────────────────────────────────
+async function openEdit(id) {
+  try {
+    const res = await fetch(`${API_URL}/${id}`);
+    const member = await res.json();
 
-  document.querySelectorAll(".delete-btn").forEach(btn =>
-    btn.onclick = () => deleteMember(btn.dataset.id)
-  );
+    modalTitle.textContent = "Edit Member";
+    editID.value = member._id;
+
+    memberIDInput.value = member.memberID;
+    fullnameInput.value = member.fullname;
+    contactInput.value = member.contactNo;
+    joinDateInput.value = member.joinDate.split("T")[0];
+    statusInput.value = member.status;
+
+    modal.style.display = "block";
+  } catch (err) {
+    console.error("Error loading member:", err);
+  }
 }
 
+window.openEdit = openEdit; // expose to HTML buttons
 
-// START EDIT
-function startEdit(id) {
-  const m = members.find(x => x._id === id);
-  if (!m) return;
+// ─────────────────────────────────────────────
+// CLOSE MODAL
+// ─────────────────────────────────────────────
+closeModalBtn.onclick = () => modal.style.display = "none";
+cancelBtn.onclick = () => modal.style.display = "none";
 
-  modalTitle.textContent = "Edit Member";
-  document.getElementById("editID").value = m._id;
+window.onclick = (e) => {
+  if (e.target === modal) modal.style.display = "none";
+};
 
-  memberID.value = m.memberID;
-  fullname.value = m.fullname;
-  contactNo.value = m.contactNo;
-  joinDate.value = m.joinDate.split("T")[0];
-  status.value = m.status;
-
-  addMemberModal.style.display = "block";
-}
-
-
-// SAVE HANDLER
-addMemberForm.addEventListener("submit", async (e) => {
+// ─────────────────────────────────────────────
+// SUBMIT FORM (ADD OR EDIT)
+// ─────────────────────────────────────────────
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const id = document.getElementById("editID").value;
-
-  const data = {
-    memberID: memberID.value.trim(),
-    fullname: fullname.value.trim(),
-    contactNo: contactNo.value.trim(),
-    joinDate: joinDate.value,
-    status: status.value
+  const member = {
+    memberID: memberIDInput.value,
+    fullname: fullnameInput.value,
+    contactNo: contactInput.value,
+    joinDate: joinDateInput.value || new Date(),
+    status: statusInput.value
   };
 
-  if (id) {
-    await updateMember(id, data);
-  } else {
-    await createMember(data);
-  }
+  try {
+    if (editID.value) {
+      // UPDATE
+      await fetch(`${API_URL}/${editID.value}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(member)
+      });
+    } else {
+      // CREATE
+      await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(member)
+      });
+    }
 
-  closeModalFn();
-  loadMembers();
+    modal.style.display = "none";
+    loadMembers();
+
+  } catch (err) {
+    console.error("Error saving member:", err);
+  }
 });
 
-
-// CREATE MEMBER
-async function createMember(data) {
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-}
-
-
-// UPDATE MEMBER
-async function updateMember(id, data) {
-  await fetch(`${API_URL}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data)
-  });
-}
-
-
+// ─────────────────────────────────────────────
 // DELETE MEMBER
+// ─────────────────────────────────────────────
 async function deleteMember(id) {
-  if (!confirm("Delete this member?")) return;
+  if (!confirm("Are you sure you want to delete this member?")) return;
 
-  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  loadMembers();
+  try {
+    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+    loadMembers();
+  } catch (err) {
+    console.error("Error deleting member:", err);
+  }
 }
 
+window.deleteMember = deleteMember;
 
-// =============================
-// MODAL CONTROL
-// =============================
-function setupListeners() {
-  openAddModal.onclick = () => {
-    modalTitle.textContent = "Add New Member";
-    addMemberForm.reset();
-    document.getElementById("editID").value = "";
-    addMemberModal.style.display = "block";
-  };
+// ─────────────────────────────────────────────
+// SEARCH + SORT LISTENERS
+// ─────────────────────────────────────────────
+searchInput.addEventListener("input", loadMembers);
+sortField.addEventListener("change", loadMembers);
+sortDirection.addEventListener("change", loadMembers);
 
-  closeModal.onclick = closeModalFn;
-  cancelBtn.onclick = closeModalFn;
-
-  window.onclick = e => {
-    if (e.target === addMemberModal) closeModalFn();
-  };
-}
-
-function closeModalFn() {
-  addMemberModal.style.display = "none";
-}
+// ─────────────────────────────────────────────
+// INIT LOAD
+// ─────────────────────────────────────────────
+loadMembers();
