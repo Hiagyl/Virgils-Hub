@@ -1,18 +1,38 @@
-const Expenses = require('../models/Expense');
-const Members = require('../models/Member'); // Only needed if validating responsibleID
+const Expense = require("../Model/Expenses");
 
-// CREATE expense
-exports.createExpense = async (req, res) => {
+// Get all expenses
+exports.getAll = async (req, res) => {
+    try {
+        const expenses = await Expense.find();
+        res.status(200).json(expenses);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving expenses", error });
+    }
+};
+
+// Get expense by ID
+exports.getById = async (req, res) => {
+    try {
+        const expense = await Expense.findById(req.params.id);
+        if (!expense) {
+            return res.status(404).json({ message: "Expense not found" });
+        }
+        res.status(200).json(expense);
+    } catch (error) {
+        res.status(500).json({ message: "Error retrieving expense", error });
+    }
+};
+
+// Create a new expense
+exports.create = async (req, res) => {
     try {
         const { amount, date, responsibleID, receipt, remarks } = req.body;
 
-        // Optional: Validate responsible member exists
-        const member = await Members.findById(responsibleID);
-        if (!member) {
-            return res.status(404).json({ message: "Responsible member not found" });
+        if (!amount || !responsibleID) {
+            return res.status(400).json({ message: "Missing required fields" });
         }
 
-        const expense = new Expenses({
+        const newExpense = new Expense({
             amount,
             date,
             responsibleID,
@@ -20,82 +40,43 @@ exports.createExpense = async (req, res) => {
             remarks
         });
 
-        await expense.save();
-        res.status(201).json(expense);
-
+        await newExpense.save();
+        res.status(201).json({ message: "Expense created successfully", newExpense });
     } catch (error) {
-        console.error("Create Expense Error:", error);
-        res.status(500).json({ message: "Server error creating expense" });
+        res.status(400).json({ message: "Error creating expense", error });
     }
 };
 
-// GET all expenses
-exports.getExpenses = async (req, res) => {
+// Update expense by ID
+exports.update = async (req, res) => {
     try {
-        const expenses = await Expenses
-            .find()
-            .populate("responsibleID"); // Optional: return full member data
-
-        res.json(expenses);
-
-    } catch (error) {
-        console.error("Get Expenses Error:", error);
-        res.status(500).json({ message: "Server error fetching expenses" });
-    }
-};
-
-// GET one expense
-exports.getExpenseById = async (req, res) => {
-    try {
-        const expense = await Expenses.findById(req.params.id)
-            .populate("responsibleID");
-
-        if (!expense) {
-            return res.status(404).json({ message: "Expense not found" });
-        }
-
-        res.json(expense);
-
-    } catch (error) {
-        console.error("Get Expense Error:", error);
-        res.status(500).json({ message: "Server error fetching expense" });
-    }
-};
-
-// UPDATE expense
-exports.updateExpense = async (req, res) => {
-    try {
-        const updatedExpense = await Expenses.findByIdAndUpdate(
+        const updatedExpense = await Expense.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { new: true, runValidators: true }
         );
 
         if (!updatedExpense) {
             return res.status(404).json({ message: "Expense not found" });
         }
 
-        res.json(updatedExpense);
-
+        res.status(200).json({ message: "Expense updated successfully", updatedExpense });
     } catch (error) {
-        console.error("Update Expense Error:", error);
-        res.status(500).json({ message: "Server error updating expense" });
+        res.status(400).json({ message: "Error updating expense", error });
     }
 };
 
-// DELETE expense
-exports.deleteExpense = async (req, res) => {
+// Delete expense by ID
+exports.delete = async (req, res) => {
     try {
-        const deletedExpense = await Expenses.findByIdAndDelete(req.params.id);
+        const deletedExpense = await Expense.findByIdAndDelete(req.params.id);
 
         if (!deletedExpense) {
             return res.status(404).json({ message: "Expense not found" });
         }
 
-        res.json({ message: "Expense deleted successfully" });
-
+        res.status(200).json({ message: "Expense deleted successfully" });
     } catch (error) {
-        console.error("Delete Expense Error:", error);
-        res.status(500).json({ message: "Server error deleting expense" });
+        res.status(500).json({ message: "Error deleting expense", error });
     }
 };

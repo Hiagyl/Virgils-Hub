@@ -29,9 +29,9 @@ mongoose
     .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/distributions", require("./Routes/distributionRoutes"));
-// app.use("/api/donations", require("./Routes/donationRoutes"));
+app.use("/api/donations", require("./Routes/donationRoutes"));
 app.use("/api/donors", require("./Routes/donorRoutes"));
-// app.use("/api/expenses", require("./Routes/expenseRoutes"));
+app.use("/api/expenses", require("./Routes/expenseRoutes"));
 app.use("/api/members", require("./Routes/memberRoutes"));
 // app.use("/api/reports", require("./Routes/reportRoutes"));
 app.use("/api/scholars", require("./Routes/scholarRoutes"));
