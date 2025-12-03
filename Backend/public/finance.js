@@ -1,17 +1,4 @@
 // ===============================
-// SHARED STORAGE
-// ===============================
-function loadTransactions() {
-  return JSON.parse(localStorage.getItem("transactions") || "[]");
-}
-function saveTransactions(list) {
-  localStorage.setItem("transactions", JSON.stringify(list));
-}
-
-let records = loadTransactions();
-
-
-// ===============================
 // ELEMENTS
 // ===============================
 const addRecordBtn = document.getElementById("addRecordBtn");
@@ -19,6 +6,11 @@ const addRecordModal = document.getElementById("addRecordModal");
 const cancelRecordBtn = document.getElementById("cancelRecordBtn");
 const addRecordForm = document.getElementById("addRecordForm");
 const modalTitle = document.getElementById("modalTitle");
+
+const recType = document.getElementById("recType");
+const recDesc = document.getElementById("recDesc");
+const recAmount = document.getElementById("recAmount");
+const recDate = document.getElementById("recDate");
 
 const txnTableBody = document.querySelector("#txnTable tbody");
 const searchFinance = document.getElementById("searchFinance");
@@ -30,9 +22,10 @@ const balanceEl = document.getElementById("balance");
 const sortField = document.getElementById("sortField");
 const sortDirection = document.getElementById("sortDirection");
 
+let records = []; // store fetched transactions
 
 // ===============================
-// MODAL OPEN
+// MODAL HANDLERS
 // ===============================
 addRecordBtn.onclick = () => {
   addRecordForm.reset();
@@ -41,70 +34,90 @@ addRecordBtn.onclick = () => {
   addRecordModal.style.display = "block";
 };
 
-cancelRecordBtn.onclick = () => {
-  addRecordModal.style.display = "none";
-};
-
+cancelRecordBtn.onclick = () => (addRecordModal.style.display = "none");
 document.querySelector(".modal .close").onclick = () =>
-  addRecordModal.style.display = "none";
-
+  (addRecordModal.style.display = "none");
 window.onclick = (e) => {
   if (e.target === addRecordModal) addRecordModal.style.display = "none";
 };
 
+// ===============================
+// API CALLS
+// ===============================
+async function loadTransactions() {
+  try {
+    const res = await fetch("http://localhost:5000/api/finance");
+    const data = await res.json();
+    records = data;
+    return data;
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+async function saveTransaction(txn) {
+  try {
+    const method = txn._id ? "PUT" : "POST";
+    const url = txn._id
+      ? `http://localhost:5000/api/finance/${txn._id}`
+      : "http://localhost:5000/api/finance";
+
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(txn),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+async function deleteRecord(id, type) {
+  if (!confirm("Delete this transaction?")) return;
+
+  try {
+    await fetch(`http://localhost:5000/api/finance/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type }),
+    });
+    updateDisplay();
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 // ===============================
 // ADD / EDIT RECORD
 // ===============================
-addRecordForm.addEventListener("submit", e => {
+addRecordForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const editID = document.getElementById("editID").value;
-
-  const newData = {
-    id: editID || ("TRX-" + String(records.length + 1).padStart(3, "0")),
+  const txn = {
+    _id: document.getElementById("editID").value,
     type: recType.value,
     description: recDesc.value,
     amount: Number(recAmount.value),
-    date: recDate.value
+    date: recDate.value,
   };
 
-  if (editID) {
-    // UPDATE EXISTING
-    const index = records.findIndex(r => r.id === editID);
-    if (index !== -1) records[index] = newData;
-  } else {
-    // ADD NEW
-    records.push(newData);
-  }
-
-  saveTransactions(records);
-  updateDisplay();
+  await saveTransaction(txn);
   addRecordModal.style.display = "none";
+  updateDisplay();
 });
 
-
 // ===============================
-// DELETE RECORD
+// EDIT RECORD
 // ===============================
-function deleteRecord(id) {
-  if (!confirm("Delete this transaction?")) return;
-
-  records = records.filter(r => r.id !== id);
-  saveTransactions(records);
-  updateDisplay();
-}
-
-
-// ===============================
-// EDIT RECORD (fills form)
-// ===============================
-function editRecord(id) {
-  const r = records.find(x => x.id === id);
+function editRecord(id, type) {
+  const r = records.find((x) => x._id === id && x.type === type);
   if (!r) return;
 
   modalTitle.textContent = "Edit Record";
-  document.getElementById("editID").value = r.id;
+  document.getElementById("editID").value = r._id;
   recType.value = r.type;
   recDesc.value = r.description;
   recAmount.value = r.amount;
@@ -113,37 +126,33 @@ function editRecord(id) {
   addRecordModal.style.display = "block";
 }
 
-
 // ===============================
-// UPDATE DISPLAY
+// DISPLAY & RENDER
 // ===============================
-function updateDisplay() {
+async function updateDisplay() {
+  await loadTransactions();
   let list = applySearch(records);
   list = applySorting(list);
   renderRecords(list);
-  computeTotals();
+  computeTotals(list);
 }
 
-
-// ===============================
-// RENDER TABLE
-// ===============================
 function renderRecords(list) {
   txnTableBody.innerHTML = "";
 
-  list.forEach(r => {
+  list.forEach((r) => {
     const row = document.createElement("tr");
     row.classList.add("fade-in");
 
     row.innerHTML = `
-      <td>${r.id}</td>
+      <td>${r._id}</td>
       <td>${r.type}</td>
       <td>${r.description}</td>
       <td>${formatMoney(r.amount)}</td>
       <td>${new Date(r.date).toLocaleDateString()}</td>
       <td>
-        <button class="action-btn edit-btn" onclick="editRecord('${r.id}')">Edit</button>
-        <button class="action-btn delete-btn" onclick="deleteRecord('${r.id}')">Delete</button>
+        <button class="action-btn edit-btn" onclick="editRecord('${r._id}', '${r.type}')">Edit</button>
+        <button class="action-btn delete-btn" onclick="deleteRecord('${r._id}', '${r.type}')">Delete</button>
       </td>
     `;
 
@@ -151,18 +160,18 @@ function renderRecords(list) {
   });
 }
 
-
+// ===============================
+// HELPERS
 // ===============================
 function formatMoney(v) {
   return "₱ " + new Intl.NumberFormat("en-PH", { minimumFractionDigits: 2 }).format(v);
 }
 
+function computeTotals(list) {
+  let donations = 0,
+    expenses = 0;
 
-// ===============================
-function computeTotals() {
-  let donations = 0, expenses = 0;
-
-  records.forEach(r => {
+  list.forEach((r) => {
     if (r.type === "donation") donations += r.amount;
     else expenses += r.amount;
   });
@@ -172,7 +181,8 @@ function computeTotals() {
   balanceEl.textContent = formatMoney(donations - expenses);
 }
 
-
+// ===============================
+// SEARCH & SORT
 // ===============================
 searchFinance.addEventListener("input", updateDisplay);
 
@@ -180,17 +190,16 @@ function applySearch(list) {
   const q = searchFinance.value.toLowerCase();
   if (!q) return list;
 
-  return list.filter(r =>
-    r.id.toLowerCase().includes(q) ||
-    r.type.toLowerCase().includes(q) ||
-    r.description.toLowerCase().includes(q) ||
-    String(r.amount).includes(q) ||
-    r.date.includes(q)
+  return list.filter(
+    (r) =>
+      r._id.toLowerCase().includes(q) ||
+      r.type.toLowerCase().includes(q) ||
+      r.description.toLowerCase().includes(q) ||
+      String(r.amount).includes(q) ||
+      r.date.includes(q)
   );
 }
 
-
-// ===============================
 sortField.addEventListener("change", updateDisplay);
 sortDirection.addEventListener("change", updateDisplay);
 
@@ -204,7 +213,6 @@ function applySorting(list) {
     return a[field].localeCompare(b[field]) * dir;
   });
 }
-
 
 // ===============================
 // INITIAL LOAD

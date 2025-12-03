@@ -36,6 +36,7 @@ app.use("/api/expenses", require("./Routes/expenseRoutes"));
 app.use("/api/members", require("./Routes/memberRoutes"));
 // app.use("/api/reports", require("./Routes/reportRoutes"));
 app.use("/api/scholars", require("./Routes/scholarRoutes"));
+app.use("/api/finance", require("./Routes/financeRoutes"));
 
 // Check connection status endpoint
 app.get("/status", (req, res) => {
