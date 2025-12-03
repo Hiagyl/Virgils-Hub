@@ -185,7 +185,8 @@ async function fetchTransactions() {
       ...t,
       id: t._id,
       category: "Expense",
-      type: t.type || "Expense"
+      type: t.type || "Expense",
+      description: t.remarks || ""
     }));
 
     return [...donations, ...expenses];
@@ -201,7 +202,7 @@ async function fetchTransactions() {
 async function createTransaction(data, transactionType) {
   // Determine API endpoint
   const apiUrl = transactionType === "donation" ? API_URLS.Donations : API_URLS.Expenses;
-  
+
   let payload = {};
 
   if (transactionType === "donation") {
