@@ -133,30 +133,117 @@
 
           <div class="form-group">
             <label>Amount *</label>
-            <input type="number" id="transAmount" required>
+            <input type="number" id="transAmount" step="0.01" min="0" required>
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Description *</label>
-          <input type="text" id="transDesc" required>
+        <!-- Donation Specific Fields -->
+        <div id="donationFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Donor ID *</label>
+              <input type="text" id="donorID" placeholder="e.g., DON-001">
+            </div>
+            <div class="form-group">
+              <label>Payment Mode *</label>
+              <select id="paymentMode">
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="gcash">GCash</option>
+                <option value="paymaya">PayMaya</option>
+                <option value="check">Check</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="donationDesc" placeholder="Optional donation description">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Date *</label>
-          <input type="date" id="transDate" required>
+        <!-- Expense Specific Fields -->
+        <div id="expenseFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Responsible Member ID *</label>
+              <input type="text" id="responsibleID" placeholder="e.g., MEM-001">
+            </div>
+            <div class="form-group">
+              <label>Expense Type</label>
+              <select id="expenseType">
+                <option value="operational">Operational</option>
+                <option value="event">Event</option>
+                <option value="administrative">Administrative</option>
+                <option value="scholar_support">Scholar Support</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <input type="text" id="expenseDesc" placeholder="What was this expense for?">
+          </div>
+        </div>
+
+        <!-- Purchase Specific Fields -->
+        <div id="purchaseFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Responsible Member ID *</label>
+              <input type="text" id="purchaseResponsibleID" placeholder="e.g., MEM-001">
+            </div>
+            <div class="form-group">
+              <label>Payment Mode</label>
+              <select id="purchasePaymentMode">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="gcash">GCash</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <input type="text" id="purchaseDesc" placeholder="What was purchased?">
+          </div>
+
+          <div class="form-group">
+            <label>Receipt Number (Optional)</label>
+            <input type="text" id="receiptNumber" placeholder="Receipt number if available">
+          </div>
+        </div>
+
+        <!-- Common Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" id="transDate" required>
+          </div>
+
+          <div class="form-group">
+            <label>Remarks (Optional)</label>
+            <input type="text" id="remarks" placeholder="Additional notes">
+          </div>
+        </div>
+
+        <div class="form-group" id="receiptField" style="display: none;">
+          <label>Receipt Upload (Optional)</label>
+          <input type="file" id="receiptUpload" accept="image/*,.pdf">
+          <small>Upload receipt image or PDF</small>
         </div>
 
         <div class="form-actions">
           <button type="button" class="btn-secondary" id="cancelTransactionBtn">Cancel</button>
-          <button type="submit" class="btn-primary">Save</button>
+          <button type="submit" class="btn-primary">Save Transaction</button>
         </div>
 
       </form>
     </div>
   </div>
 </div>
-
 <script src="transactions.js"></script>
 
 <script>
