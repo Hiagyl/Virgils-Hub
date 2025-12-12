@@ -102,10 +102,10 @@ addTransactionForm.addEventListener("submit", async e => {
   }
 
   // Generate new ID if adding (not editing)
-  /*if (!editID) {
-    editID = generateTransactionID();
-    document.getElementById("editID").value = editID;
-  }*/
+  // if (!editID) {
+  //  editID = generateTransactionID();
+
+  //}
 
   // Prepare data object based on transaction type
   let data = {};
@@ -251,16 +251,16 @@ async function deleteTransaction(id, type) {
 // EDIT (load into modal)
 // ===============================
 function editTransaction(id) {
-  const t = transactions.find(x => x.id === id);
+  const t = transactions.find(x => x._id === id);
   if (!t) return;
 
   modalTitle.textContent = "Edit Transaction";
 
   // Set common fields
-  document.getElementById("editID").value = t.id;
+  document.getElementById("editID").value = t._id;
   transType.value = t.type || 'expense';
   transAmount.value = t.amount || "";
-  transDate.value = t.date || t.dateReceived || "";
+  transDate.value = formatDate(t.date)|| "";
   document.getElementById("remarks").value = t.remarks || "";
 
   // Trigger field display based on type
@@ -347,13 +347,15 @@ function applySearch(list) {
   const q = searchTrans.value.toLowerCase();
   if (!q) return list;
 
-  return list.filter(t =>
-    t.id.toLowerCase().includes(q) ||
-    t.type.toLowerCase().includes(q) ||
-    t.description.toLowerCase().includes(q) ||
-    String(t.amount).includes(q) ||
-    t.date.includes(q)
-  );
+  return list.filter(t => {
+    return (
+        (t._id && t._id.toLowerCase().includes(q)) ||
+        (t.type && t.type.toLowerCase().includes(q)) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.amount && String(t.amount).includes(q)) ||
+        (t.date && t.date.toLowerCase().includes(q))
+    );
+  });
 }
 
 
@@ -394,11 +396,14 @@ async function fetchTransactions() {
 
     // Merge and normalize data
     const allTransactions = [
-      ...donations.map(d => ({ ...d, type: 'donation' })),
+      ...donations.map(d => ({
+          ...d,
+          type: 'donation',
+        date: d.date || d.dateReceived
+      })),
       ...expenses.map(e => ({
-        ...e,
-        type: e.type || 'expense',
-        date: e.date || e.dateReceived // Normalize date field
+         ...e,
+          type: e.type || 'expense',
       }))
     ];
 
@@ -416,6 +421,40 @@ function generateTransactionID() {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 7);
   return `TRX-${timestamp}-${random}`.toUpperCase();
+}
+function formatDate(dateString) {
+  if (!dateString) return '';
+
+  try {
+    // If it's already in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+
+    // If it includes time (ISO format)
+    if (dateString.includes('T')) {
+      return dateString.split('T')[0];
+    }
+
+    // Parse as Date object
+    const date = new Date(dateString);
+
+    // Check if valid date
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', dateString);
+      return '';
+    }
+
+    // Format as YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
 }
 
 // ===============================
