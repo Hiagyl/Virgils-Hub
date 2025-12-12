@@ -102,10 +102,10 @@ addTransactionForm.addEventListener("submit", async e => {
   }
 
   // Generate new ID if adding (not editing)
-  if (!editID) {
+  /*if (!editID) {
     editID = generateTransactionID();
     document.getElementById("editID").value = editID;
-  }
+  }*/
 
   // Prepare data object based on transaction type
   let data = {};
@@ -118,7 +118,7 @@ addTransactionForm.addEventListener("submit", async e => {
     }
 
     data = {
-      id: editID,
+
       donorID: document.getElementById('donorID').value,
       amount: Number(transAmount.value),
       dateReceived: transDate.value,
@@ -141,7 +141,6 @@ addTransactionForm.addEventListener("submit", async e => {
     }
 
     data = {
-      id: editID,
       amount: Number(transAmount.value),
       date: transDate.value,
       responsibleID: document.getElementById('responsibleID').value,
@@ -163,7 +162,6 @@ addTransactionForm.addEventListener("submit", async e => {
     }
 
     data = {
-      id: editID,
       amount: Number(transAmount.value),
       date: transDate.value,
       responsibleID: document.getElementById('purchaseResponsibleID').value,
@@ -318,14 +316,14 @@ function renderTransactions(list) {
 
     // Fix: Include the type parameter in deleteTransaction call
     row.innerHTML = `
-      <td>${t.id || 'N/A'}</td>
+      <td>${t._id}</td>
       <td>${t.type || 'unknown'}</td>
       <td>${t.description || ''}</td>
       <td>${formatMoney(t.amount || 0)}</td>
       <td>${t.date ? new Date(t.date).toLocaleDateString() : 'N/A'}</td>
       <td>
-        <button class="action-btn edit-btn" onclick="editTransaction('${t.id}')">Edit</button>
-        <button class="action-btn delete-btn" onclick="deleteTransaction('${t.id}', '${t.type || 'expense'}')">Delete</button>
+        <button class="action-btn edit-btn" onclick="editTransaction('${t._id}')">Edit</button>
+        <button class="action-btn delete-btn" onclick="deleteTransaction('${t._id}', '${t.type || 'expense'}')">Delete</button>
       </td>
     `;
 
