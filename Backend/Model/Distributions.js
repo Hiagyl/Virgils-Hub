@@ -1,29 +1,35 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const DistributionSchema = new mongoose.Schema({
-    scholarID: {
-        type: String,
-        required: true,
-        ref: 'Scholars'
-    },
-    type: {
-        type: String,
-        enum: ['grocery', 'allowance'],
-        required: true
-    },
-    amount: {
-        type: Number,
-        required: true
-    },
-    location: {
-        type: String,
-        required: true
-    },
-    proof: {
-        type: String, // URL or file path of proof of distribution
-        default: ''
-    }
+  distributionID: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  scholar: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  location: {
+    type: String,
+    default: ""
+  },
+  proof: {
+    type: String,
+    default: ""
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-const Distributions = mongoose.model('Distribution', DistributionSchema);
-module.exports = Distributions;
+module.exports = mongoose.model("Distribution", DistributionSchema);
