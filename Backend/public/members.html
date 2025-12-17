@@ -5,62 +5,97 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>UP Vis — Organization Members</title>
 <link rel="stylesheet" href="styles.css">
+
+<style>
+/* Fade animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+/* Sorting dropdown style */
+.sort-controls select {
+  padding: 6px 10px;
+  background: #0f152f;
+  border: 1px solid #243059;
+  border-radius: 6px;
+  color: white;
+}
+.sort-controls label { margin-right: 6px; }
+
+/* Action buttons */
+.action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.edit-btn  { background:#16a34a; color:white; margin-right:4px; }
+.delete-btn { background:#ef4444; color:white; }
+</style>
 </head>
+
 <body>
 <div class="app">
+
+  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="brand">
       <div class="logo"></div>
-<div><h1>UP Vis</h1><div class="sub">Scholar Support and Donation Management System</div></div>
+      <div>
+        <h1>UP Vis</h1>
+        <div class="sub">Scholar Support and Donation Management System</div>
+      </div>
     </div>
+
     <nav class="nav">
       <h3>Finance</h3>
-      <a href="#/finance" data-route class="active"><span class="icon">D</span> Dashboard</a>
-      <a href="#/transactions" data-route><span class="icon">T</span> Transactions</a>
-      <a href="#/distributions" data-route><span class="icon">D</span> Distributions</a>
-      <a href="#/scholars" data-route><span class="icon">S</span> Scholars</a>
-      <a href="#/members" data-route><span class="icon">M</span> Members</a>
+      <a href="finance.html"><span class="icon">D</span> Dashboard</a>
+      <a href="transactions.html"><span class="icon">T</span> Transactions</a>
+      <a href="distributions.html"><span class="icon">D</span> Distributions</a>
+      <a href="scholars.html"><span class="icon">S</span> Scholars</a>
+      <a href="members.html"><span class="icon">M</span> Members</a>
     </nav>
   </aside>
 
+  <!-- MAIN -->
   <main class="main">
+
+    <!-- TOPBAR -->
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="env-badge">Environment: <strong>Prototype</strong></div>
-        <div class="search-bar">
-          <span style="color:#6b7893">🔍</span>
-          <input type="text" placeholder="Type a name, transaction ID, or keyword..." />
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-btn">Backups ✓</div>
-        <div class="topbar-btn">Unread: 3</div>
+      <div class="search-bar">
+        <span style="color:#6b7893">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search members…">
       </div>
     </header>
 
+    <!-- CONTENT -->
     <section class="content">
+
       <div class="page-header">
         <h2>Organization Members</h2>
-        <a href="#/add-member" class="btn">+ Add Member</a>
+        <button id="openAddModal" class="btn primary">+ Add Member</button>
       </div>
 
-      <div class="filters-card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Search</label>
-            <input type="text" placeholder="Name or email" />
-          </div>
-          <div class="filter-group">
-            <label>Status</label>
-            <select>
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>All</option>
-            </select>
-          </div>
-        </div>
+      <!-- SORT CONTROLS -->
+      <div class="sort-controls" style="display:flex; gap:12px; margin-bottom:12px; align-items:center;">
+        <label><strong>Sort by:</strong></label>
+
+        <select id="sortField">
+          <option value="memberID">ID</option>
+          <option value="fullname">Name</option>
+          <option value="joinDate">Join Date</option>
+          <option value="status">Status</option>
+        </select>
+
+        <select id="sortDirection">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
       </div>
 
+      <!-- MEMBERS TABLE -->
       <div class="members-table">
         <table class="table">
           <thead>
@@ -70,56 +105,80 @@
               <th>Contact #</th>
               <th>Join Date</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="membersTableBody"></tbody>
         </table>
       </div>
+
     </section>
   </main>
 </div>
 
-    <!-- Add Member Modal -->
-    <div id="addMemberModal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h3>Add New Member</h3>
-          <span class="close">&times;</span>
-        </div>
-        <div class="modal-body">
-          <form id="addMemberForm">
-            <div class="form-group">
-              <label for="memberID">Member ID *</label>
-              <input type="text" id="memberID" name="memberID" required>
-            </div>
-            <div class="form-group">
-              <label for="fullname">Full Name *</label>
-              <input type="text" id="fullname" name="fullname" required>
-            </div>
-            <div class="form-group">
-              <label for="contactNo">Contact Number *</label>
-              <input type="text" id="contactNo" name="contactNo" required>
-            </div>
-            <div class="form-group">
-              <label for="joinDate">Join Date</label>
-              <input type="date" id="joinDate" name="joinDate">
-            </div>
-            <div class="form-group">
-              <label for="status">Status</label>
-              <select id="status" name="status">
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
-              <button type="submit" class="btn-primary">Add Member</button>
-            </div>
-          </form>
-        </div>
-      </div>
+
+<!-- ADD / EDIT MEMBER MODAL -->
+<div id="addMemberModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Member</h3>
+      <span class="close" id="closeModal">&times;</span>
     </div>
 
+    <div class="modal-body">
+      <form id="addMemberForm">
+
+        <input type="hidden" id="editID">
+
+        <div class="form-group">
+          <label>Member ID *</label>
+          <input type="text" id="memberID" required>
+        </div>
+
+        <div class="form-group">
+          <label>Full Name *</label>
+          <input type="text" id="fullname" required>
+        </div>
+
+        <div class="form-group">
+          <label>Contact Number *</label>
+          <input type="text" id="contactNo" required>
+        </div>
+
+        <div class="form-group">
+          <label>Join Date</label>
+          <input type="date" id="joinDate">
+        </div>
+
+        <div class="form-group">
+          <label>Status</label>
+          <select id="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save Member</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <script src="members.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const current = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav a").forEach(a =>
+    a.classList.toggle("active", a.getAttribute("href") === current)
+  );
+});
+</script>
+
 </body>
 </html>

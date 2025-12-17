@@ -3,81 +3,266 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UP Vis — Organization Members</title>
+<title>UP Vis — Transactions</title>
 <link rel="stylesheet" href="styles.css">
+
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.25s ease-out; }
+
+.sort-controls select {
+  padding: 6px 10px;
+  background: #0f152f;
+  border: 1px solid #243059;
+  border-radius: 6px;
+  color: white;
+}
+.sort-controls label { margin-right: 6px; }
+
+.action-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 4px;
+}
+.edit-btn { background: #3b82f6; color: white; }
+.delete-btn { background: #ef4444; color: white; }
+</style>
 </head>
+
 <body>
 <div class="app">
+
   <aside class="sidebar">
     <div class="brand">
       <div class="logo"></div>
-<div><h1>UP Vis</h1><div class="sub">Scholar Support and Donation Management System</div></div>
+      <div>
+        <h1>UP Vis</h1>
+        <div class="sub">Scholar Support and Donation Management System</div>
+      </div>
     </div>
+
     <nav class="nav">
       <h3>Finance</h3>
-      <a href="finance.html" data-route class="active"><span class="icon">D</span> Dashboard</a>
-      <a href="transactions.html" data-route><span class="icon">T</span> Transactions</a>
-      <a href="distributions.html" data-route><span class="icon">D</span> Distributions</a>
-      <a href="scholars.html" data-route><span class="icon">S</span> Scholars</a>
-      <a href="members.html" data-route><span class="icon">M</span> Members</a>
-
+      <a href="finance.html"><span class="icon">D</span> Dashboard</a>
+      <a href="transactions.html"><span class="icon">T</span> Transactions</a>
+      <a href="distributions.html"><span class="icon">D</span> Distributions</a>
+      <a href="scholars.html"><span class="icon">S</span> Scholars</a>
+      <a href="members.html"><span class="icon">M</span> Members</a>
     </nav>
   </aside>
 
   <main class="main">
+
     <header class="topbar">
-      <div class="topbar-left">
-        <div class="env-badge">Environment: <strong>Prototype</strong></div>
-        <div class="search-bar">
-          <span style="color:#6b7893">🔍</span>
-          <input type="text" placeholder="Type a name, transaction ID, or keyword..." />
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-btn">Backups ✓</div>
-        <div class="topbar-btn">Unread: 3</div>
+      <div class="search-bar">
+        <span style="color:#6b7893">🔍</span>
+        <input type="text" id="searchTrans" placeholder="Search…">
       </div>
     </header>
 
     <section class="content">
+
       <div class="page-header">
-        <h2>Organization Members</h2>
-        <a href="#/add-member" class="btn">+ Add Member</a>
+        <h2>Transactions</h2>
+        <button id="addTransactionBtn" class="btn primary">+ Add Transaction</button>
       </div>
 
-      <div class="filters-card">
-        <div class="filter-row">
-          <div class="filter-group">
-            <label>Search</label>
-            <input type="text" placeholder="Name or email" />
-          </div>
-          <div class="filter-group">
-            <label>Status</label>
-            <select>
-              <option>Active</option>
-              <option>Inactive</option>
-              <option>All</option>
-            </select>
-          </div>
-        </div>
+      <div class="sort-controls" style="display:flex; gap:12px; margin-bottom:12px; align-items:center;">
+        <label><strong>Sort by:</strong></label>
+
+        <select id="sortField">
+          <option value="date">Date</option>
+          <option value="type">Type</option>
+          <option value="amount">Amount</option>
+        </select>
+
+        <select id="sortDirection">
+          <option value="desc">Descending</option>
+          <option value="asc">Ascending</option>
+        </select>
       </div>
 
       <div class="members-table">
-        <table class="table">
+        <table class="table" id="transactionsTable">
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
-              <th>Contact #</th>
-              <th>Join Date</th>
-              <th>Status</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="transTableBody"></tbody>
         </table>
       </div>
+
     </section>
   </main>
 </div>
+
+<!-- ADD / EDIT TRANSACTION MODAL -->
+<div id="addTransactionModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add New Transaction</h3>
+      <span class="close">&times;</span>
+    </div>
+
+    <div class="modal-body">
+      <form id="addTransactionForm">
+
+        <input type="hidden" id="editID">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type *</label>
+            <select id="transType" required>
+              <option value="">Select Type</option>
+              <option value="donation">Donation</option>
+              <option value="expense">Expense</option>
+              <option value="purchase">Purchase</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Amount *</label>
+            <input type="number" id="transAmount" step="0.01" min="0" required>
+          </div>
+        </div>
+
+        <!-- Donation Specific Fields -->
+        <div id="donationFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Donor ID *</label>
+              <input type="text" id="donorID" placeholder="e.g., DON-001">
+            </div>
+            <div class="form-group">
+              <label>Payment Mode *</label>
+              <select id="paymentMode">
+                <option value="cash">Cash</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="gcash">GCash</option>
+                <option value="paymaya">PayMaya</option>
+                <option value="check">Check</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="donationDesc" placeholder="Optional donation description">
+          </div>
+        </div>
+
+        <!-- Expense Specific Fields -->
+        <div id="expenseFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Responsible Member ID *</label>
+              <input type="text" id="responsibleID" placeholder="e.g., MEM-001">
+            </div>
+            <div class="form-group">
+              <label>Expense Type</label>
+              <select id="expenseType">
+                <option value="operational">Operational</option>
+                <option value="event">Event</option>
+                <option value="administrative">Administrative</option>
+                <option value="scholar_support">Scholar Support</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <input type="text" id="expenseDesc" placeholder="What was this expense for?">
+          </div>
+        </div>
+
+        <!-- Purchase Specific Fields -->
+        <div id="purchaseFields" style="display: none;">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Responsible Member ID *</label>
+              <input type="text" id="purchaseResponsibleID" placeholder="e.g., MEM-001">
+            </div>
+            <div class="form-group">
+              <label>Payment Mode</label>
+              <select id="purchasePaymentMode">
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="gcash">GCash</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Description *</label>
+            <input type="text" id="purchaseDesc" placeholder="What was purchased?">
+          </div>
+
+          <div class="form-group">
+            <label>Receipt Number (Optional)</label>
+            <input type="text" id="receiptNumber" placeholder="Receipt number if available">
+          </div>
+        </div>
+
+        <!-- Common Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Date *</label>
+            <input type="date" id="transDate" required>
+          </div>
+
+          <div class="form-group">
+            <label>Remarks (Optional)</label>
+            <input type="text" id="remarks" placeholder="Additional notes">
+          </div>
+        </div>
+
+        <div class="form-group" id="receiptField" style="display: none;">
+          <label>Receipt Upload</label>
+          <div style="background: #f8f9fa; border: 2px dashed #dee2e6;
+              border-radius: 8px; padding: 20px; text-align: center;
+              cursor: not-allowed; position: relative;">
+            <div style="font-size: 32px; color: #adb5bd; margin-bottom: 10px;">📤</div>
+            <h4 style="margin: 0 0 8px 0; color: #495057;">Coming Soon!</h4>
+            <p style="color: #6c757d; margin: 0 0 15px 0; font-size: 14px;">
+              Receipt upload feature is under development
+            </p>
+          </div>
+          <small style="color: #6c757d; display: block; margin-top: 8px;">
+            ⚠️ Please keep physical/digital receipts for now
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" id="cancelTransactionBtn">Cancel</button>
+          <button type="submit" class="btn-primary">Save Transaction</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+<script src="transactions.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const current = window.location.pathname.split("/").pop();
+  document.querySelectorAll(".nav a").forEach(a => {
+    a.classList.toggle("active", a.getAttribute("href") === current);
+  });
+});
+</script>
+
 </body>
 </html>

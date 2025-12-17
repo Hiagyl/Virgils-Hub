@@ -1,0 +1,41 @@
+### BASE URL
+@baseUrl = http://localhost:5000/api/distributions
+
+### 1. GET ALL DISTRIBUTIONS
+GET {{baseUrl}}
+
+
+### 2. GET DISTRIBUTION BY ID
+# Replace the ID after saving one distribution
+GET {{baseUrl}}/69142c7127082a773aa40062
+
+
+### 3. CREATE NEW DISTRIBUTION
+# Replace "scholarID" with a valid Scholar _id from your database
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "scholarID": "69142c7127082a773aa40062",
+  "type": "grocery",
+  "amount": 1200,
+  "location": "UPV Miagao",
+  "proof": "uploads/proof1.jpg"
+}
+
+
+### 4. UPDATE DISTRIBUTION
+# Replace ID + scholarID with real ones
+PUT {{baseUrl}}/6764f123abc123def4567890
+Content-Type: application/json
+
+{
+  "type": "allowance",
+  "amount": 1500,
+  "location": "UPV Iloilo Campus"
+}
+
+
+### 5. DELETE DISTRIBUTION
+# Replace the ID with an existing one
+DELETE {{baseUrl}}/6764f123abc123def4567890
