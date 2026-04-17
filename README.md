@@ -1,7 +1,7 @@
 # UPVis
 
 
-<span>short description</span>
+<span>Previous repo for upVIS</span>
 
 ---
 
